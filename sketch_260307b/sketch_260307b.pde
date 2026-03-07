@@ -7,6 +7,7 @@ int collisionCount = 0;
 ArrayList<Integer> history;
 int simX;
 int startTime;
+int yMax;  // current y-axis ceiling, grows automatically
 
 void settings() {
   fullScreen();
@@ -15,6 +16,7 @@ void settings() {
 void setup() {
   simX = (int)(width * GRAPH_RATIO);
   startTime = millis();
+  yMax = GRAPH_Y_MAX_INITIAL;
   particles = new ArrayList<Particle>();
   history = new ArrayList<Integer>();
   
@@ -46,6 +48,11 @@ void draw() {
   }
   
   history.add(collisionCount);
+
+  // auto-scale y-axis when count approaches the top
+  if(collisionCount >= yMax * GRAPH_Y_SCALE_AT){
+    yMax = (int)(yMax * GRAPH_Y_SCALE_FACTOR);
+  }
 }
 
 // ---- Graph ----
@@ -69,11 +76,31 @@ void drawGraph(){
   fill(200);
   textSize(GRAPH_TICK_SIZE);
   
-  // y-axis: 0 at bottom, max at top
-  textAlign(RIGHT, CENTER);
-  text("0",    m - 5, height - m);
-  text(GRAPH_MAX_COLLISIONS/2, m - 5, height/2);
-  text(GRAPH_MAX_COLLISIONS,   m - 5, m/2);
+  // y-axis: fixed absolute-value ticks at real collision counts
+  // mirrors x-axis exactly: new ticks appear as count grows, all compress down as yMax scales up
+  int yTickInterval = GRAPH_Y_TICK_BASE;
+  float plotH = (height - m) - (m / 2.0);
+  // thin out: keep doubling interval until ticks are at least GRAPH_MIN_Y_TICK_PX apart in pixel space
+  while(yMax > 0 && (yTickInterval / (float)yMax) * plotH < GRAPH_MIN_Y_TICK_PX){
+    yTickInterval *= 2;
+  }
+  textSize(GRAPH_TICK_SIZE);
+  for(int v = yTickInterval; v <= collisionCount; v += yTickInterval){
+    float ty = map(v, 0, yMax, height - m, m / 2);
+    stroke(180);
+    line(m - 5, ty, m, ty);
+    fill(200);
+    noStroke();
+    textAlign(RIGHT, CENTER);
+    String lbl;
+    if(v >= 1000000)     lbl = nf(v/1000000.0, 1, 1) + "M";
+    else if(v >= 1000)   lbl = nf(v/1000.0, 1, 1) + "k";
+    else                 lbl = str(v);
+    text(lbl, m - 7, ty);
+  }
+  // always draw "0" at origin
+  fill(200); noStroke(); textAlign(RIGHT, CENTER);
+  text("0", m - 7, height - m);
   
   // x-axis: fixed-interval ticks at absolute time positions
   // resolution auto-upgrades as elapsed time crosses TICK_THRESHOLDS
@@ -151,7 +178,7 @@ void drawGraph(){
   beginShape();
   for(int i = 0; i < history.size(); i++){
     float x = map(i, 0, max(history.size(), 1), m, simX - m/2);
-    float y = map(history.get(i), 0, GRAPH_MAX_COLLISIONS, height - m, m/2);
+    float y = map(history.get(i), 0, yMax, height - m, m/2);
     vertex(x, y);
   }
   endShape();

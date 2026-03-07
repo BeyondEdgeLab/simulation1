@@ -14,16 +14,20 @@ final float TIME_SCALE = 10.0;  // multiplier for simulation speed:
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
 // --- Particles ---
-final int   PARTICLE_COUNT  = 100;   // number of particles in the simulation
+final int   PARTICLE_COUNT  = 1000;   // number of particles in the simulation
 final float PARTICLE_RADIUS = 2;    // radius of each particle in pixels
 final float MAX_SPEED       = 2.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
 
 // --- Graph ---
-final int   GRAPH_MAX_COLLISIONS = 1000; // y-axis max on the collision graph
+final int   GRAPH_Y_MAX_INITIAL   = 1000;  // starting y-axis max (collision count)
+final float GRAPH_Y_SCALE_AT      = 0.75;  // auto-scale y-axis when count reaches this fraction of current max (0.0-1.0)
+final float GRAPH_Y_SCALE_FACTOR  = 2.0;   // how much to multiply the y-axis max when scaling up
 final int   GRAPH_MARGIN         = 50;   // inner padding (pixels) for axis labels
 final int   GRAPH_LABEL_SIZE     = 14;   // axis label font size
 final int   GRAPH_TICK_SIZE      = 11;   // tick value font size
 final int   GRAPH_MIN_TICK_PX    = 60;   // minimum pixel distance between x-axis ticks before they are thinned out
+final int   GRAPH_MIN_Y_TICK_PX  = 40;   // minimum pixel distance between y-axis ticks before they are thinned out
+final int   GRAPH_Y_TICK_BASE    = 100;  // first y-axis tick appears at this count value (e.g. 100, then 200, 300...)
 
 // X-axis tick resolution tiers:
 // When elapsed time exceeds a threshold, the tick interval upgrades to the next tier.
