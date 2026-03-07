@@ -16,10 +16,11 @@ final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the windo
 // --- Particles ---
 final float PARTICLE_RADIUS = 5;    // radius of each particle in pixels
 final float MAX_SPEED       = 5.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
-final int   MAX_POPULATION  = 750;  // simulation stops when total particle count reaches this number
+final int   MAX_POPULATION  = 1000;  // simulation stops when total particle count reaches this number
+final boolean STOP_ON_EXTINCTION = true;  // if true, simulation stops when all particles have died (population = 0)
 
 // Group A — Red
-final int GROUP_A_COUNT            = 10;   // number of red particles
+final int GROUP_A_COUNT            = 2;   // number of red particles
 final int GROUP_A_R                = 220;  // red channel
 final int GROUP_A_G                = 60;   // green channel
 final int GROUP_A_B                = 60;   // blue channel

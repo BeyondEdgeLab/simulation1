@@ -91,7 +91,17 @@ void draw() {
   for(int i = particles.size() - 1; i >= 0; i--){
     if(particles.get(i).isDead()) particles.remove(i);
   }
-  
+
+  // stop simulation if all particles have died
+  if(STOP_ON_EXTINCTION && particles.size() == 0){
+    noLoop();
+    fill(255);
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text("Extinction: all particles have died", simX + (width - simX) / 2, height / 2);
+    return;
+  }
+
   // show particles
   for(Particle p : particles){
     p.show();
