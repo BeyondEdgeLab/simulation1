@@ -76,31 +76,37 @@ void drawGraph(){
   fill(200);
   textSize(GRAPH_TICK_SIZE);
   
-  // y-axis: fixed absolute-value ticks at real collision counts
-  // mirrors x-axis exactly: new ticks appear as count grows, all compress down as yMax scales up
-  int yTickInterval = GRAPH_Y_TICK_BASE;
-  float plotH = (height - m) - (m / 2.0);
-  // thin out: keep doubling interval until ticks are at least GRAPH_MIN_Y_TICK_PX apart in pixel space
-  while(yMax > 0 && (yTickInterval / (float)yMax) * plotH < GRAPH_MIN_Y_TICK_PX){
-    yTickInterval *= 2;
+  // y-axis: ticks appear at fixed absolute count values (GRAPH_Y_TICK_BASE, 2x, 3x...)
+  // each frame: loop all possible tick positions up to current collisionCount,
+  // draw only those at least GRAPH_MIN_Y_TICK_PX from the last drawn one — no sudden jumps
+  {
+    // find a coarse start interval so we don't iterate millions of times
+    int yStep = GRAPH_Y_TICK_BASE;
+    float plotH = (height - m) - (m / 2.0);
+    while(yMax > 0 && (yStep / (float)yMax) * plotH < (GRAPH_MIN_Y_TICK_PX / 4.0)){
+      yStep *= 2;
+    }
+    textSize(GRAPH_TICK_SIZE);
+    float lastDrawnTy = height - m; // track pixel y of last drawn tick (starts at 0-line)
+    for(int v = yStep; v <= collisionCount; v += yStep){
+      float ty = map(v, 0, yMax, height - m, m / 2.0);
+      // only draw if far enough from the previous drawn tick
+      if(lastDrawnTy - ty >= GRAPH_MIN_Y_TICK_PX){
+        stroke(180);
+        line(m - 5, ty, m, ty);
+        fill(200); noStroke(); textAlign(RIGHT, CENTER);
+        String lbl;
+        if(v >= 1000000)    lbl = nf(v/1000000.0, 1, 1) + "M";
+        else if(v >= 1000)  lbl = nf(v/1000.0, 1, 1) + "k";
+        else                lbl = str(v);
+        text(lbl, m - 7, ty);
+        lastDrawnTy = ty;
+      }
+    }
+    // always draw "0" at origin
+    fill(200); noStroke(); textAlign(RIGHT, CENTER);
+    text("0", m - 7, height - m);
   }
-  textSize(GRAPH_TICK_SIZE);
-  for(int v = yTickInterval; v <= collisionCount; v += yTickInterval){
-    float ty = map(v, 0, yMax, height - m, m / 2);
-    stroke(180);
-    line(m - 5, ty, m, ty);
-    fill(200);
-    noStroke();
-    textAlign(RIGHT, CENTER);
-    String lbl;
-    if(v >= 1000000)     lbl = nf(v/1000000.0, 1, 1) + "M";
-    else if(v >= 1000)   lbl = nf(v/1000.0, 1, 1) + "k";
-    else                 lbl = str(v);
-    text(lbl, m - 7, ty);
-  }
-  // always draw "0" at origin
-  fill(200); noStroke(); textAlign(RIGHT, CENTER);
-  text("0", m - 7, height - m);
   
   // x-axis: fixed-interval ticks at absolute time positions
   // resolution auto-upgrades as elapsed time crosses TICK_THRESHOLDS
