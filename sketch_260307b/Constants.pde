@@ -23,6 +23,7 @@ final int   GRAPH_MAX_COLLISIONS = 1000; // y-axis max on the collision graph
 final int   GRAPH_MARGIN         = 50;   // inner padding (pixels) for axis labels
 final int   GRAPH_LABEL_SIZE     = 14;   // axis label font size
 final int   GRAPH_TICK_SIZE      = 11;   // tick value font size
+final int   GRAPH_MIN_TICK_PX    = 60;   // minimum pixel distance between x-axis ticks before they are thinned out
 
 // X-axis tick resolution tiers:
 // When elapsed time exceeds a threshold, the tick interval upgrades to the next tier.

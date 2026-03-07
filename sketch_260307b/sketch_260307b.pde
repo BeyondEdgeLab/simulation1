@@ -87,6 +87,13 @@ void drawGraph(){
     }
   }
 
+  // widen interval if ticks would overlap in pixel space
+  // keep doubling until ticks are at least GRAPH_MIN_TICK_PX apart
+  float plotW = (simX - m/2.0) - m;
+  while(elapsedSec > 0 && (tickInterval / elapsedSec) * plotW < GRAPH_MIN_TICK_PX){
+    tickInterval *= 2;
+  }
+
   textSize(GRAPH_TICK_SIZE);
   for(float t = tickInterval; t <= elapsedSec; t += tickInterval){
     float tx = map(t, 0, elapsedSec, m, simX - m/2);
