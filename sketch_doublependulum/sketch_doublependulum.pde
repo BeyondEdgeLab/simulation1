@@ -16,6 +16,7 @@
 ArrayList<DoublePendulum> pendulums;
 float pivotX, pivotY, scalePixels;
 float camAngleX, camAngleY;   // current orbit angles (radians)
+float camOffsetX, camOffsetY; // pan offset in screen pixels
 float camZoom;                // zoom multiplier
 float prevMouseX, prevMouseY; // last drag position
 
@@ -33,6 +34,7 @@ void setup() {
   // Default camera angle: slight tilt and rotation so 3D depth is visible
   camAngleX = CAM_INIT_ANGLE_X;
   camAngleY = CAM_INIT_ANGLE_Y;
+  camOffsetX = 0;  camOffsetY = 0;
   camZoom   = 1.0;
 
   buildPendulums();
@@ -65,8 +67,8 @@ void draw() {
   background(BACKGROUND_COLOR);
   lights();
 
-  // ---- Orbit camera around the pivot ----
-  // Translate origin to pivot, rotate, translate back
+  // ---- Orbit + pan camera around the pivot ----
+  translate(camOffsetX, camOffsetY, 0);         // pan (screen space)
   translate(pivotX, pivotY, 0);
   scale(camZoom);
   rotateX(camAngleX);
@@ -107,7 +109,7 @@ void draw() {
   textSize(13);
   textAlign(LEFT, TOP);
   text("Double Pendulum  |  " + NUM_PENDULUMS + " pendulums  |  chaos offset: " + CHAOS_OFFSET, 14, 14);
-  text("Drag to orbit  |  Scroll to zoom  |  R = reset sim  |  Space = reset camera", 14, 32);
+  text("Left-drag: orbit  |  Right-drag: pan  |  Scroll: zoom  |  R: reset sim  |  Space: reset camera", 14, 32);
   hint(ENABLE_DEPTH_TEST);
 }
 
@@ -116,8 +118,13 @@ void draw() {
 void mouseDragged() {
   float dx = mouseX - prevMouseX;
   float dy = mouseY - prevMouseY;
-  camAngleY += dx * CAM_DRAG_SENSITIVITY;
-  camAngleX += dy * CAM_DRAG_SENSITIVITY;
+  if(mouseButton == RIGHT) {
+    camOffsetX += dx * CAM_PAN_SENSITIVITY;
+    camOffsetY += dy * CAM_PAN_SENSITIVITY;
+  } else {
+    camAngleY += dx * CAM_DRAG_SENSITIVITY;
+    camAngleX += dy * CAM_DRAG_SENSITIVITY;
+  }
   prevMouseX = mouseX;
   prevMouseY = mouseY;
 }
@@ -137,8 +144,9 @@ void keyPressed() {
     buildPendulums();
   }
   if(key == ' ') {
-    camAngleX = CAM_INIT_ANGLE_X;
-    camAngleY = CAM_INIT_ANGLE_Y;
-    camZoom   = 1.0;
+    camAngleX  = CAM_INIT_ANGLE_X;
+    camAngleY  = CAM_INIT_ANGLE_Y;
+    camOffsetX = 0;  camOffsetY = 0;
+    camZoom    = 1.0;
   }
 }

@@ -47,6 +47,7 @@ final float Z_SPREAD             = 80.0;   // pixel gap between pendulums along 
 final float CAM_INIT_ANGLE_X     = -0.25;  // initial vertical tilt (radians; negative = tilt down to look from above)
 final float CAM_INIT_ANGLE_Y     = 0.4;    // initial horizontal rotation (radians)
 final float CAM_DRAG_SENSITIVITY = 0.005;  // how fast a mouse drag rotates the camera
+final float CAM_PAN_SENSITIVITY  = 1.0;    // how fast right-click drag pans (pixels per pixel dragged)
 final float CAM_ZOOM_STEP        = 0.05;   // zoom change per scroll notch
 final float CAM_ZOOM_MIN         = 0.05;   // maximum zoom out (lower = further away)
 final float CAM_ZOOM_MAX         = 10.0;   // maximum zoom in
