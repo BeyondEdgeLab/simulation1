@@ -18,16 +18,18 @@ final float PARTICLE_RADIUS = 20;    // radius of each particle in pixels
 final float MAX_SPEED       = 3.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
 
 // Group A — Red
-final int GROUP_A_COUNT = 10;        // number of red particles
-final int GROUP_A_R     = 220;        // red channel
-final int GROUP_A_G     = 60;         // green channel
-final int GROUP_A_B     = 60;         // blue channel
+final int GROUP_A_COUNT            = 10;   // number of red particles
+final int GROUP_A_R                = 220;  // red channel
+final int GROUP_A_G                = 60;   // green channel
+final int GROUP_A_B                = 60;   // blue channel
+final int GROUP_A_OFFSPRING        = 2;    // offspring produced per collision for red particles
 
 // Group B — Blue
-final int GROUP_B_COUNT = 10;        // number of blue particles
-final int GROUP_B_R     = 60;         // red channel
-final int GROUP_B_G     = 130;        // green channel
-final int GROUP_B_B     = 220;        // blue channel
+final int GROUP_B_COUNT            = 10;   // number of blue particles
+final int GROUP_B_R                = 60;   // red channel
+final int GROUP_B_G                = 130;  // green channel
+final int GROUP_B_B                = 220;  // blue channel
+final int GROUP_B_OFFSPRING        = 1;    // offspring produced per collision for blue particles
 
 // --- Graph ---
 final int   GRAPH_Y_MAX_INITIAL   = 100;  // starting y-axis max (collision count)
@@ -58,6 +60,6 @@ final int BACKGROUND_COLOR = 30;  // background darkness (0 = black, 255 = white
 
 // --- Graph Lines ---
 // Set to true/false to show or hide each collision series on the plot
-final boolean SHOW_TOTAL_COLLISIONS = true;   // white line  — all collisions combined
+final boolean SHOW_TOTAL_COLLISIONS = false;   // white line  — all collisions combined
 final boolean SHOW_RED_COLLISIONS   = true;   // red line    — collisions involving red particles
 final boolean SHOW_BLUE_COLLISIONS  = true;   // blue line   — collisions involving blue particles

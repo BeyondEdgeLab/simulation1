@@ -38,9 +38,9 @@ class Particle {
       // per-group counters (a red-blue collision increments both)
       if(groupId == 0 || other.groupId == 0) collisionCountRed++;
       if(groupId == 1 || other.groupId == 1) collisionCountBlue++;
-      // per-particle offspring count
-      offsprings++;
-      other.offsprings++;
+      // per-particle offspring count: each particle uses its own group's constant
+      offsprings       += (groupId == 0) ? GROUP_A_OFFSPRING : GROUP_B_OFFSPRING;
+      other.offsprings += (other.groupId == 0) ? GROUP_A_OFFSPRING : GROUP_B_OFFSPRING;
       
       float angle = atan2(dy,dx);
       float overlap = minDist - dist;
