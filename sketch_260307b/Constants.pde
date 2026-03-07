@@ -14,9 +14,9 @@ final float TIME_SCALE = 1.0;  // multiplier for simulation speed:
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
 // --- Particles ---
-final float PARTICLE_RADIUS = 10;    // radius of each particle in pixels
-final float MAX_SPEED       = 3.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
-final int   MAX_POPULATION  = 500;  // simulation stops when total particle count reaches this number
+final float PARTICLE_RADIUS = 5;    // radius of each particle in pixels
+final float MAX_SPEED       = 5.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
+final int   MAX_POPULATION  = 750;  // simulation stops when total particle count reaches this number
 
 // Group A — Red
 final int GROUP_A_COUNT            = 10;   // number of red particles
