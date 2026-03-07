@@ -76,10 +76,19 @@ void drawGraph(){
   text(GRAPH_MAX_COLLISIONS,   m - 5, m/2);
   
   // x-axis: fixed-interval ticks at absolute time positions
-  // ticks appear every GRAPH_TICK_INTERVAL seconds and compress left as time grows
+  // resolution auto-upgrades as elapsed time crosses TICK_THRESHOLDS
   float elapsedSec = (millis() - startTime) / 1000.0;
+
+  // pick interval tier
+  float tickInterval = TICK_INTERVALS[0];
+  for(int ti = 0; ti < TICK_THRESHOLDS.length; ti++){
+    if(elapsedSec >= TICK_THRESHOLDS[ti]){
+      tickInterval = TICK_INTERVALS[ti + 1];
+    }
+  }
+
   textSize(GRAPH_TICK_SIZE);
-  for(float t = GRAPH_TICK_INTERVAL; t <= elapsedSec; t += GRAPH_TICK_INTERVAL){
+  for(float t = tickInterval; t <= elapsedSec; t += tickInterval){
     float tx = map(t, 0, elapsedSec, m, simX - m/2);
     // tick line
     stroke(180);
@@ -92,10 +101,18 @@ void drawGraph(){
     String lbl;
     if(totalSec < 60){
       lbl = totalSec + "s";
-    } else {
+    } else if(totalSec < 3600){
       int mins = totalSec / 60;
       int secs = totalSec % 60;
       lbl = secs == 0 ? mins + "m" : mins + "m" + secs + "s";
+    } else if(totalSec < 86400){
+      int hrs  = totalSec / 3600;
+      int mins = (totalSec % 3600) / 60;
+      lbl = mins == 0 ? hrs + "h" : hrs + "h" + mins + "m";
+    } else {
+      int days = totalSec / 86400;
+      int hrs  = (totalSec % 86400) / 3600;
+      lbl = hrs == 0 ? days + "d" : days + "d" + hrs + "h";
     }
     text(lbl, tx, height - m + 7);
   }
