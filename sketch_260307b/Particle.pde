@@ -11,8 +11,8 @@ class Particle {
   }
   
   void move(){
-    x += vx;
-    y += vy;
+    x += vx * TIME_SCALE;
+    y += vy * TIME_SCALE;
   }
   
   void wallBounce(){

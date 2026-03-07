@@ -77,7 +77,7 @@ void drawGraph(){
   
   // x-axis: fixed-interval ticks at absolute time positions
   // resolution auto-upgrades as elapsed time crosses TICK_THRESHOLDS
-  float elapsedSec = (millis() - startTime) / 1000.0;
+  float elapsedSec = ((millis() - startTime) / 1000.0) * TIME_SCALE;
 
   // pick interval tier
   float tickInterval = TICK_INTERVALS[0];

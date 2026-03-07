@@ -4,6 +4,12 @@
 // --- Window ---
 // Uses fullScreen() — window will match your monitor resolution automatically
 
+// --- Simulation Speed ---
+final float TIME_SCALE = 10.0;  // multiplier for simulation speed:
+                               //   1.0 = real time
+                               //   2.0 = 2x faster (1 real second = 2 sim seconds)
+                               //  60.0 = 1 real second = 1 sim minute (good for testing tick tiers)
+
 // --- Graph Panel ---
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
