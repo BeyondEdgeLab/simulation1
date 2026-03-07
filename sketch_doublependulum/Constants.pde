@@ -3,7 +3,7 @@
 // Rod lengths and masses use arbitrary simulation units; SCALE controls pixel conversion.
 
 // --- Pendulums ---
-final int   NUM_PENDULUMS    = 7;       // how many pendulums to show simultaneously
+final int   NUM_PENDULUMS    = 100;       // how many pendulums to show simultaneously
 final float CHAOS_OFFSET     = 0.0005; // tiny angle offset between each pendulum (reveals chaos)
 
 // --- Physical Parameters ---
