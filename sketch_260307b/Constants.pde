@@ -5,7 +5,7 @@
 // Uses fullScreen() — window will match your monitor resolution automatically
 
 // --- Simulation Speed ---
-final float TIME_SCALE = 10.0;  // multiplier for simulation speed:
+final float TIME_SCALE = 1.0;  // multiplier for simulation speed:
                                //   1.0 = real time
                                //   2.0 = 2x faster (1 real second = 2 sim seconds)
                                //  60.0 = 1 real second = 1 sim minute (good for testing tick tiers)
@@ -14,23 +14,23 @@ final float TIME_SCALE = 10.0;  // multiplier for simulation speed:
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
 // --- Particles ---
-final float PARTICLE_RADIUS = 2;    // radius of each particle in pixels
-final float MAX_SPEED       = 2.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
+final float PARTICLE_RADIUS = 20;    // radius of each particle in pixels
+final float MAX_SPEED       = 3.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
 
 // Group A — Red
-final int GROUP_A_COUNT = 300;        // number of red particles
+final int GROUP_A_COUNT = 10;        // number of red particles
 final int GROUP_A_R     = 220;        // red channel
 final int GROUP_A_G     = 60;         // green channel
 final int GROUP_A_B     = 60;         // blue channel
 
 // Group B — Blue
-final int GROUP_B_COUNT = 150;        // number of blue particles
+final int GROUP_B_COUNT = 10;        // number of blue particles
 final int GROUP_B_R     = 60;         // red channel
 final int GROUP_B_G     = 130;        // green channel
 final int GROUP_B_B     = 220;        // blue channel
 
 // --- Graph ---
-final int   GRAPH_Y_MAX_INITIAL   = 1000;  // starting y-axis max (collision count)
+final int   GRAPH_Y_MAX_INITIAL   = 100;  // starting y-axis max (collision count)
 final float GRAPH_Y_SCALE_AT      = 0.75;  // auto-scale y-axis when count reaches this fraction of current max (0.0-1.0)
 final float GRAPH_Y_SCALE_FACTOR  = 2.0;   // how much to multiply the y-axis max when scaling up
 final int   GRAPH_MARGIN         = 50;   // inner padding (pixels) for axis labels
