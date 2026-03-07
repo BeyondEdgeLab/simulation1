@@ -23,7 +23,7 @@ final int GROUP_A_COUNT            = 10;   // number of red particles
 final int GROUP_A_R                = 220;  // red channel
 final int GROUP_A_G                = 60;   // green channel
 final int GROUP_A_B                = 60;   // blue channel
-final int GROUP_A_OFFSPRING        = 3;    // offspring produced per same-color collision
+final int GROUP_A_OFFSPRING        = 2;    // offspring produced per same-color collision
 final float GROUP_A_MIN_AGE        = 1.0;  // sim-seconds a red particle must live before it can produce offspring
 final float GROUP_A_MAX_AGE        = 20.0; // sim-seconds after which a red particle disappears
 
