@@ -20,8 +20,21 @@ void setup() {
   particles = new ArrayList<Particle>();
   history = new ArrayList<Integer>();
   
-  for(int i=0;i<PARTICLE_COUNT;i++){
-    particles.add(new Particle(random(simX+20,width-20), random(20,height-20)));
+  // spawn Group A (red)
+  for(int i = 0; i < GROUP_A_COUNT; i++){
+    particles.add(new Particle(
+      random(simX+20, width-20),
+      random(20, height-20),
+      color(GROUP_A_R, GROUP_A_G, GROUP_A_B)
+    ));
+  }
+  // spawn Group B (blue)
+  for(int i = 0; i < GROUP_B_COUNT; i++){
+    particles.add(new Particle(
+      random(simX+20, width-20),
+      random(20, height-20),
+      color(GROUP_B_R, GROUP_B_G, GROUP_B_B)
+    ));
   }
 }
 

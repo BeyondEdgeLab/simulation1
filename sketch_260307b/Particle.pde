@@ -1,10 +1,12 @@
 class Particle {
   float x, y, r;
   float vx, vy;
+  color col;  // particle color, set at construction
   
-  Particle(float x_, float y_){
+  Particle(float x_, float y_, color col_){
     x = x_;
     y = y_;
+    col = col_;
     r = PARTICLE_RADIUS;
     vx = random(-MAX_SPEED, MAX_SPEED);
     vy = random(-MAX_SPEED, MAX_SPEED);
@@ -50,6 +52,8 @@ class Particle {
   }
   
   void show(){
-    circle(x,y,r*2);
+    fill(col);
+    noStroke();
+    circle(x, y, r*2);
   }
 }
