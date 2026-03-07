@@ -11,7 +11,7 @@ final float L1               = 1.5;    // length of rod 1 (simulation units)
 final float L2               = 1.5;    // length of rod 2 (simulation units)
 final float M1               = 2.0;    // mass of bob 1
 final float M2               = 1.0;    // mass of bob 2
-final float GRAVITY          = 9.81;   // gravitational acceleration (units/s²)
+final float GRAVITY          = 9.81;   // gravitational acceleration (units/sÂ²)
 
 // --- Initial Conditions ---
 final float THETA1_INIT      = HALF_PI;  // initial angle of rod 1 from vertical (radians)
@@ -41,6 +41,12 @@ final int   BOB_RADIUS       = 8;      // bob circle radius in pixels
 final int   ROD_WEIGHT       = 2;      // rod stroke weight
 final boolean SHOW_RODS      = true;   // draw connecting rods
 final boolean SHOW_BOBS      = true;   // draw bob circles
+
+// --- 3D Camera ---
+final float Z_SPREAD             = 80.0;   // pixel gap between pendulums along Z axis
+final float CAM_INIT_ANGLE_X     = -0.25;  // initial vertical tilt (radians; negative = tilt down to look from above)
+final float CAM_INIT_ANGLE_Y     = 0.4;    // initial horizontal rotation (radians)
+final float CAM_DRAG_SENSITIVITY = 0.005;  // how fast a mouse drag rotates the camera
 
 // --- Color Palette ---
 // First and last pendulum colors; intermediate ones interpolate between them.
