@@ -6,6 +6,7 @@ ArrayList<Particle> particles;
 int collisionCount = 0;
 ArrayList<Integer> history;
 int simX;
+int startTime;
 
 void settings() {
   fullScreen();
@@ -13,6 +14,7 @@ void settings() {
 
 void setup() {
   simX = (int)(width * GRAPH_RATIO);
+  startTime = millis();
   particles = new ArrayList<Particle>();
   history = new ArrayList<Integer>();
   
@@ -73,10 +75,35 @@ void drawGraph(){
   text(GRAPH_MAX_COLLISIONS/2, m - 5, height/2);
   text(GRAPH_MAX_COLLISIONS,   m - 5, m/2);
   
-  // x-axis: start and "now"
+  // x-axis: fixed-interval ticks at absolute time positions
+  // ticks appear every GRAPH_TICK_INTERVAL seconds and compress left as time grows
+  float elapsedSec = (millis() - startTime) / 1000.0;
+  textSize(GRAPH_TICK_SIZE);
+  for(float t = GRAPH_TICK_INTERVAL; t <= elapsedSec; t += GRAPH_TICK_INTERVAL){
+    float tx = map(t, 0, elapsedSec, m, simX - m/2);
+    // tick line
+    stroke(180);
+    line(tx, height - m, tx, height - m + 5);
+    // smart label: "30s", "1m", "1m30s", "2m" ...
+    fill(200);
+    noStroke();
+    textAlign(CENTER, TOP);
+    int totalSec = (int)t;
+    String lbl;
+    if(totalSec < 60){
+      lbl = totalSec + "s";
+    } else {
+      int mins = totalSec / 60;
+      int secs = totalSec % 60;
+      lbl = secs == 0 ? mins + "m" : mins + "m" + secs + "s";
+    }
+    text(lbl, tx, height - m + 7);
+  }
+  // always draw "0" at the origin
+  fill(200);
+  noStroke();
   textAlign(CENTER, TOP);
-  text("0", m, height - m + 5);
-  text(history.size(), simX - m/2, height - m + 5);
+  text("0", m, height - m + 7);
   
   // --- Axis labels ---
   textSize(GRAPH_LABEL_SIZE);
