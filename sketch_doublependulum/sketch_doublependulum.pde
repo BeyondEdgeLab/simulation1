@@ -107,7 +107,7 @@ void draw() {
   textSize(13);
   textAlign(LEFT, TOP);
   text("Double Pendulum  |  " + NUM_PENDULUMS + " pendulums  |  chaos offset: " + CHAOS_OFFSET, 14, 14);
-  text("Drag to orbit  |  Scroll to zoom  |  Click or R = reset  |  Space = reset camera", 14, 32);
+  text("Drag to orbit  |  Scroll to zoom  |  R = reset sim  |  Space = reset camera", 14, 32);
   hint(ENABLE_DEPTH_TEST);
 }
 
@@ -125,14 +125,6 @@ void mouseDragged() {
 void mousePressed() {
   prevMouseX = mouseX;
   prevMouseY = mouseY;
-  // single click resets simulation (but not if user just started dragging)
-}
-
-void mouseReleased() {
-  // if mouse barely moved, treat as a reset click
-  float dx = abs(mouseX - prevMouseX);
-  float dy = abs(mouseY - prevMouseY);
-  if(dx < 5 && dy < 5) buildPendulums();
 }
 
 void mouseWheel(MouseEvent e) {
