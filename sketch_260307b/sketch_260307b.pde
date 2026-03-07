@@ -3,16 +3,20 @@
 // Constants    -> Constants.pde
 
 ArrayList<Particle> particles;
-ArrayList<Particle> pendingParticles; // offspring spawned during collision loop, added after
-int collisionCount    = 0;  // total collisions
-int collisionCountRed  = 0;  // collisions involving red particles
-int collisionCountBlue = 0;  // collisions involving blue particles
-ArrayList<Integer> history;      // total
-ArrayList<Integer> historyRed;   // red group
-ArrayList<Integer> historyBlue;  // blue group
+ArrayList<Particle> pendingParticles;
+int collisionCount    = 0;
+int collisionCountRed  = 0;
+int collisionCountBlue = 0;
+ArrayList<Integer> history;         // total collisions
+ArrayList<Integer> historyRed;      // red collisions
+ArrayList<Integer> historyBlue;     // blue collisions
+ArrayList<Integer> historyPopTotal; // total population
+ArrayList<Integer> historyPopRed;   // red population
+ArrayList<Integer> historyPopBlue;  // blue population
 int simX;
 int startTime;
-int yMax;  // current y-axis ceiling, grows automatically
+int yMax;     // collision plot y-ceiling
+int yMaxPop;  // population plot y-ceiling
 
 void settings() {
   fullScreen();
@@ -21,12 +25,16 @@ void settings() {
 void setup() {
   simX = (int)(width * GRAPH_RATIO);
   startTime = millis();
-  yMax = GRAPH_Y_MAX_INITIAL;
+  yMax    = GRAPH_Y_MAX_INITIAL;
+  yMaxPop = GRAPH_POP_Y_MAX_INITIAL;
   particles        = new ArrayList<Particle>();
   pendingParticles = new ArrayList<Particle>();
-  history     = new ArrayList<Integer>();
-  historyRed  = new ArrayList<Integer>();
-  historyBlue = new ArrayList<Integer>();
+  history         = new ArrayList<Integer>();
+  historyRed      = new ArrayList<Integer>();
+  historyBlue     = new ArrayList<Integer>();
+  historyPopTotal = new ArrayList<Integer>();
+  historyPopRed   = new ArrayList<Integer>();
+  historyPopBlue  = new ArrayList<Integer>();
   
   // spawn Group A (red)
   for(int i = 0; i < GROUP_A_COUNT; i++){
@@ -93,7 +101,17 @@ void draw() {
   historyRed.add(collisionCountRed);
   historyBlue.add(collisionCountBlue);
 
-  // auto-scale y-axis: use the max of whichever series are enabled
+  // count current population by group
+  int popRed = 0, popBlue = 0;
+  for(Particle p : particles){
+    if(p.groupId == 0) popRed++;
+    else               popBlue++;
+  }
+  historyPopTotal.add(particles.size());
+  historyPopRed.add(popRed);
+  historyPopBlue.add(popBlue);
+
+  // auto-scale collision y-axis
   int activeMax = 0;
   if(SHOW_TOTAL_COLLISIONS) activeMax = max(activeMax, collisionCount);
   if(SHOW_RED_COLLISIONS)   activeMax = max(activeMax, collisionCountRed);
@@ -101,170 +119,167 @@ void draw() {
   if(activeMax >= yMax * GRAPH_Y_SCALE_AT){
     yMax = (int)(yMax * GRAPH_Y_SCALE_FACTOR);
   }
+
+  // auto-scale population y-axis
+  int popMax = 0;
+  if(SHOW_TOTAL_POPULATION) popMax = max(popMax, particles.size());
+  if(SHOW_RED_POPULATION)   popMax = max(popMax, popRed);
+  if(SHOW_BLUE_POPULATION)  popMax = max(popMax, popBlue);
+  if(popMax >= yMaxPop * GRAPH_Y_SCALE_AT){
+    yMaxPop = (int)(yMaxPop * GRAPH_Y_SCALE_FACTOR);
+  }
 }
 
 // ---- Graph ----
 
-void drawGraph(){
-  int m = GRAPH_MARGIN;
-  
-  // panel background border
-  stroke(255);
-  noFill();
-  rect(0, 0, simX, height);
-  
-  // plot area axes
-  stroke(180);
-  // x axis
-  line(m, height - m, simX - m/2, height - m);
-  // y axis
-  line(m, m/2, m, height - m);
-  
-  // --- Tick labels ---
-  fill(200);
+// Draws a y-axis with smooth appearing/thinning ticks inside a subplot band.
+// pxBottom/pxTop = pixel y boundaries; curVal = current max data value; yAxisMax = scale ceiling
+void drawYAxis(int m, int pxBottom, int pxTop, int curVal, int yAxisMax, int tickBase){
+  int yStep = tickBase;
+  float plotH = pxBottom - pxTop;
+  while(yAxisMax > 0 && (yStep / (float)yAxisMax) * plotH < (GRAPH_MIN_Y_TICK_PX / 4.0)){
+    yStep *= 2;
+  }
+  float lastDrawnTy = pxBottom;
+  for(int v = yStep; v <= curVal; v += yStep){
+    float ty = map(v, 0, yAxisMax, pxBottom, pxTop);
+    if(lastDrawnTy - ty >= GRAPH_MIN_Y_TICK_PX){
+      stroke(180);
+      line(m - 5, ty, m, ty);
+      fill(200); noStroke(); textAlign(RIGHT, CENTER);
+      String lbl;
+      if(v >= 1000000)    lbl = nf(v/1000000.0, 1, 1) + "M";
+      else if(v >= 1000)  lbl = nf(v/1000.0, 1, 1) + "k";
+      else                lbl = str(v);
+      text(lbl, m - 7, ty);
+      lastDrawnTy = ty;
+    }
+  }
+  fill(200); noStroke(); textAlign(RIGHT, CENTER);
+  text("0", m - 7, pxBottom);
+}
+
+// Draws x-axis ticks and labels along a given pixel y (the axis line).
+void drawXAxis(int m, int pxAxisY, float elapsedSec){
+  float plotW = (simX - m/2.0) - m;
+  float tickInterval = TICK_INTERVALS[0];
+  for(int ti = 0; ti < TICK_THRESHOLDS.length; ti++){
+    if(elapsedSec >= TICK_THRESHOLDS[ti]) tickInterval = TICK_INTERVALS[ti + 1];
+  }
+  while(elapsedSec > 0 && (tickInterval / elapsedSec) * plotW < GRAPH_MIN_TICK_PX){
+    tickInterval *= 2;
+  }
   textSize(GRAPH_TICK_SIZE);
-  
-  // y-axis ticks: base on the largest active series
+  for(float t = tickInterval; t <= elapsedSec; t += tickInterval){
+    float tx = map(t, 0, elapsedSec, m, simX - m/2);
+    stroke(180);
+    line(tx, pxAxisY, tx, pxAxisY + 5);
+    fill(200); noStroke(); textAlign(CENTER, TOP);
+    int totalSec = (int)t;
+    String lbl;
+    if(totalSec < 60)            lbl = totalSec + "s";
+    else if(totalSec < 3600)   { int mn=totalSec/60; int sc=totalSec%60;   lbl = sc==0 ? mn+"m" : mn+"m"+sc+"s"; }
+    else if(totalSec < 86400)  { int hr=totalSec/3600; int mn=(totalSec%3600)/60; lbl = mn==0 ? hr+"h" : hr+"h"+mn+"m"; }
+    else                       { int dy=totalSec/86400; int hr=(totalSec%86400)/3600; lbl = hr==0 ? dy+"d" : dy+"d"+hr+"h"; }
+    text(lbl, tx, pxAxisY + 7);
+  }
+  fill(200); noStroke(); textAlign(CENTER, TOP);
+  text("0", m, pxAxisY + 7);
+}
+
+// Draws data lines for a subplot given history arrays, pixel bounds, and y ceiling.
+void drawLines(ArrayList<Integer> hist1, color c1, boolean show1,
+               ArrayList<Integer> hist2, color c2, boolean show2,
+               ArrayList<Integer> hist3, color c3, boolean show3,
+               int m, int pxBottom, int pxTop, int yAxisMax){
+  int n = hist1.size();
+  if(n < 2) return;
+  if(show1){ noFill(); stroke(c1);
+    beginShape();
+    for(int i=0;i<n;i++) vertex(map(i,0,n,m,simX-m/2), map(hist1.get(i),0,yAxisMax,pxBottom,pxTop));
+    endShape(); }
+  if(show2 && hist2.size()>=2){ noFill(); stroke(c2);
+    beginShape();
+    for(int i=0;i<hist2.size();i++) vertex(map(i,0,n,m,simX-m/2), map(hist2.get(i),0,yAxisMax,pxBottom,pxTop));
+    endShape(); }
+  if(show3 && hist3.size()>=2){ noFill(); stroke(c3);
+    beginShape();
+    for(int i=0;i<hist3.size();i++) vertex(map(i,0,n,m,simX-m/2), map(hist3.get(i),0,yAxisMax,pxBottom,pxTop));
+    endShape(); }
+}
+
+void drawGraph(){
+  int m    = GRAPH_MARGIN;
+  int midY = height / 2;
+
+  // outer border + divider
+  stroke(255); noFill();
+  rect(0, 0, simX, height);
+  stroke(80);
+  line(0, midY, simX, midY);
+
+  float elapsedSec = ((millis() - startTime) / 1000.0) * TIME_SCALE;
+
+  // ---- TOP SUBPLOT: Collision Count ----
+  int topPxBottom = midY - m/2;
+  int topPxTop    = m/2;
+  // axes
+  stroke(180);
+  line(m, topPxBottom, simX - m/2, topPxBottom); // x-axis
+  line(m, topPxTop,    m, topPxBottom);           // y-axis
+  // y ticks
+  textSize(GRAPH_TICK_SIZE);
   int refCount = 0;
   if(SHOW_TOTAL_COLLISIONS) refCount = max(refCount, collisionCount);
   if(SHOW_RED_COLLISIONS)   refCount = max(refCount, collisionCountRed);
   if(SHOW_BLUE_COLLISIONS)  refCount = max(refCount, collisionCountBlue);
-
-  // y-axis: ticks appear at fixed absolute count values (GRAPH_Y_TICK_BASE, 2x, 3x...)
-  // each frame: loop all possible tick positions up to current refCount,
-  // draw only those at least GRAPH_MIN_Y_TICK_PX from the last drawn one — no sudden jumps
-  {
-    // find a coarse start interval so we don't iterate millions of times
-    int yStep = GRAPH_Y_TICK_BASE;
-    float plotH = (height - m) - (m / 2.0);
-    while(yMax > 0 && (yStep / (float)yMax) * plotH < (GRAPH_MIN_Y_TICK_PX / 4.0)){
-      yStep *= 2;
-    }
-    textSize(GRAPH_TICK_SIZE);
-    float lastDrawnTy = height - m; // track pixel y of last drawn tick (starts at 0-line)
-    for(int v = yStep; v <= refCount; v += yStep){
-      float ty = map(v, 0, yMax, height - m, m / 2.0);
-      // only draw if far enough from the previous drawn tick
-      if(lastDrawnTy - ty >= GRAPH_MIN_Y_TICK_PX){
-        stroke(180);
-        line(m - 5, ty, m, ty);
-        fill(200); noStroke(); textAlign(RIGHT, CENTER);
-        String lbl;
-        if(v >= 1000000)    lbl = nf(v/1000000.0, 1, 1) + "M";
-        else if(v >= 1000)  lbl = nf(v/1000.0, 1, 1) + "k";
-        else                lbl = str(v);
-        text(lbl, m - 7, ty);
-        lastDrawnTy = ty;
-      }
-    }
-    // always draw "0" at origin
-    fill(200); noStroke(); textAlign(RIGHT, CENTER);
-    text("0", m - 7, height - m);
-  }
-  
-  // x-axis: fixed-interval ticks at absolute time positions
-  // resolution auto-upgrades as elapsed time crosses TICK_THRESHOLDS
-  float elapsedSec = ((millis() - startTime) / 1000.0) * TIME_SCALE;
-
-  // pick interval tier
-  float tickInterval = TICK_INTERVALS[0];
-  for(int ti = 0; ti < TICK_THRESHOLDS.length; ti++){
-    if(elapsedSec >= TICK_THRESHOLDS[ti]){
-      tickInterval = TICK_INTERVALS[ti + 1];
-    }
-  }
-
-  // widen interval if ticks would overlap in pixel space
-  // keep doubling until ticks are at least GRAPH_MIN_TICK_PX apart
-  float plotW = (simX - m/2.0) - m;
-  while(elapsedSec > 0 && (tickInterval / elapsedSec) * plotW < GRAPH_MIN_TICK_PX){
-    tickInterval *= 2;
-  }
-
-  textSize(GRAPH_TICK_SIZE);
-  for(float t = tickInterval; t <= elapsedSec; t += tickInterval){
-    float tx = map(t, 0, elapsedSec, m, simX - m/2);
-    // tick line
-    stroke(180);
-    line(tx, height - m, tx, height - m + 5);
-    // smart label: "30s", "1m", "1m30s", "2m" ...
-    fill(200);
-    noStroke();
-    textAlign(CENTER, TOP);
-    int totalSec = (int)t;
-    String lbl;
-    if(totalSec < 60){
-      lbl = totalSec + "s";
-    } else if(totalSec < 3600){
-      int mins = totalSec / 60;
-      int secs = totalSec % 60;
-      lbl = secs == 0 ? mins + "m" : mins + "m" + secs + "s";
-    } else if(totalSec < 86400){
-      int hrs  = totalSec / 3600;
-      int mins = (totalSec % 3600) / 60;
-      lbl = mins == 0 ? hrs + "h" : hrs + "h" + mins + "m";
-    } else {
-      int days = totalSec / 86400;
-      int hrs  = (totalSec % 86400) / 3600;
-      lbl = hrs == 0 ? days + "d" : days + "d" + hrs + "h";
-    }
-    text(lbl, tx, height - m + 7);
-  }
-  // always draw "0" at the origin
-  fill(200);
-  noStroke();
-  textAlign(CENTER, TOP);
-  text("0", m, height - m + 7);
-  
-  // --- Axis labels ---
-  textSize(GRAPH_LABEL_SIZE);
-  fill(255);
-  
-  // X label: "Time"
+  drawYAxis(m, topPxBottom, topPxTop, refCount, yMax, GRAPH_Y_TICK_BASE);
+  // x ticks
+  drawXAxis(m, topPxBottom, elapsedSec);
+  // axis labels
+  textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
   textAlign(CENTER, BOTTOM);
-  text("Time", simX / 2, height - 5);
-  
-  // Y label: "Collision Count" rotated
+  text("Time", simX/2, midY - 2);
   pushMatrix();
-    translate(12, height / 2);
-    rotate(-HALF_PI);
+    translate(12, midY/2); rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
-    text("Collision Count", 0, 0);
+    text("Collisions", 0, 0);
   popMatrix();
-  
-  // --- Data lines (color-coded, enabled by constants) ---
-  int n = history.size();
-  if(n > 1){
-    if(SHOW_TOTAL_COLLISIONS){
-      noFill(); stroke(255, 255, 255); // white
-      beginShape();
-      for(int i = 0; i < n; i++){
-        float x = map(i, 0, n, m, simX - m/2);
-        float y = map(history.get(i), 0, yMax, height - m, m/2);
-        vertex(x, y);
-      }
-      endShape();
-    }
-    if(SHOW_RED_COLLISIONS){
-      noFill(); stroke(GROUP_A_R, GROUP_A_G, GROUP_A_B); // red
-      beginShape();
-      for(int i = 0; i < historyRed.size(); i++){
-        float x = map(i, 0, n, m, simX - m/2);
-        float y = map(historyRed.get(i), 0, yMax, height - m, m/2);
-        vertex(x, y);
-      }
-      endShape();
-    }
-    if(SHOW_BLUE_COLLISIONS){
-      noFill(); stroke(GROUP_B_R, GROUP_B_G, GROUP_B_B); // blue
-      beginShape();
-      for(int i = 0; i < historyBlue.size(); i++){
-        float x = map(i, 0, n, m, simX - m/2);
-        float y = map(historyBlue.get(i), 0, yMax, height - m, m/2);
-        vertex(x, y);
-      }
-      endShape();
-    }
-  }
+  // data lines
+  drawLines(history,      color(255,255,255), SHOW_TOTAL_COLLISIONS,
+            historyRed,   color(GROUP_A_R, GROUP_A_G, GROUP_A_B), SHOW_RED_COLLISIONS,
+            historyBlue,  color(GROUP_B_R, GROUP_B_G, GROUP_B_B), SHOW_BLUE_COLLISIONS,
+            m, topPxBottom, topPxTop, yMax);
+
+  // ---- BOTTOM SUBPLOT: Population ----
+  int botPxBottom = height - m/2;
+  int botPxTop    = midY + m/2;
+  // axes
+  stroke(180);
+  line(m, botPxBottom, simX - m/2, botPxBottom); // x-axis
+  line(m, botPxTop,    m, botPxBottom);           // y-axis
+  // y ticks
+  textSize(GRAPH_TICK_SIZE);
+  int refPop = 0;
+  if(SHOW_TOTAL_POPULATION) refPop = max(refPop, historyPopTotal.size() > 0 ? historyPopTotal.get(historyPopTotal.size()-1) : 0);
+  if(SHOW_RED_POPULATION)   refPop = max(refPop, historyPopRed.size()   > 0 ? historyPopRed.get(historyPopRed.size()-1)     : 0);
+  if(SHOW_BLUE_POPULATION)  refPop = max(refPop, historyPopBlue.size()  > 0 ? historyPopBlue.get(historyPopBlue.size()-1)   : 0);
+  drawYAxis(m, botPxBottom, botPxTop, refPop, yMaxPop, GRAPH_Y_TICK_BASE);
+  // x ticks
+  drawXAxis(m, botPxBottom, elapsedSec);
+  // axis labels
+  textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
+  textAlign(CENTER, BOTTOM);
+  text("Time", simX/2, height - 2);
+  pushMatrix();
+    translate(12, midY + (height - midY)/2); rotate(-HALF_PI);
+    textAlign(CENTER, CENTER);
+    text("Population", 0, 0);
+  popMatrix();
+  // data lines
+  drawLines(historyPopTotal, color(255,255,255), SHOW_TOTAL_POPULATION,
+            historyPopRed,   color(GROUP_A_R, GROUP_A_G, GROUP_A_B), SHOW_RED_POPULATION,
+            historyPopBlue,  color(GROUP_B_R, GROUP_B_G, GROUP_B_B), SHOW_BLUE_POPULATION,
+            m, botPxBottom, botPxTop, yMaxPop);
 }
 

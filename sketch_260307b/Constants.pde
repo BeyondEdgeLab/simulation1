@@ -65,6 +65,12 @@ final int BACKGROUND_COLOR = 30;  // background darkness (0 = black, 255 = white
 
 // --- Graph Lines ---
 // Set to true/false to show or hide each collision series on the plot
-final boolean SHOW_TOTAL_COLLISIONS = false;   // white line  — all collisions combined
-final boolean SHOW_RED_COLLISIONS   = true;   // red line    — collisions involving red particles
-final boolean SHOW_BLUE_COLLISIONS  = true;   // blue line   — collisions involving blue particles
+final boolean SHOW_TOTAL_COLLISIONS = false;  // white line  — all collisions combined
+final boolean SHOW_RED_COLLISIONS   = true;   // red line    — red-only collisions
+final boolean SHOW_BLUE_COLLISIONS  = true;   // blue line   — blue-only collisions
+
+// Population subplot (bottom panel)
+final boolean SHOW_TOTAL_POPULATION = false;   // white line  — total particle count
+final boolean SHOW_RED_POPULATION   = true;   // red line    — red particle count
+final boolean SHOW_BLUE_POPULATION  = true;   // blue line   — blue particle count
+final int     GRAPH_POP_Y_MAX_INITIAL = 50;   // starting y-axis max for population subplot
