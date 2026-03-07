@@ -3,6 +3,7 @@
 // Constants    -> Constants.pde
 
 ArrayList<Particle> particles;
+ArrayList<Particle> pendingParticles; // offspring spawned during collision loop, added after
 int collisionCount    = 0;  // total collisions
 int collisionCountRed  = 0;  // collisions involving red particles
 int collisionCountBlue = 0;  // collisions involving blue particles
@@ -21,7 +22,8 @@ void setup() {
   simX = (int)(width * GRAPH_RATIO);
   startTime = millis();
   yMax = GRAPH_Y_MAX_INITIAL;
-  particles = new ArrayList<Particle>();
+  particles        = new ArrayList<Particle>();
+  pendingParticles = new ArrayList<Particle>();
   history     = new ArrayList<Integer>();
   historyRed  = new ArrayList<Integer>();
   historyBlue = new ArrayList<Integer>();
@@ -47,6 +49,17 @@ void setup() {
 }
 
 void draw() {
+  // stop simulation when population cap is reached
+  if(particles.size() >= MAX_POPULATION){
+    noLoop();
+    // draw a message over the simulation area
+    fill(255);
+    textSize(24);
+    textAlign(CENTER, CENTER);
+    text("Population cap reached: " + particles.size() + " particles",
+         simX + (width - simX) / 2, height / 2);
+    return;
+  }
   background(BACKGROUND_COLOR);
   drawGraph();
   
@@ -61,6 +74,14 @@ void draw() {
     for(int j=i+1;j<particles.size();j++){
       particles.get(i).collide(particles.get(j));
     }
+  }
+  // add offspring spawned during collision loop
+  particles.addAll(pendingParticles);
+  pendingParticles.clear();
+
+  // remove particles that have exceeded their max age
+  for(int i = particles.size() - 1; i >= 0; i--){
+    if(particles.get(i).isDead()) particles.remove(i);
   }
   
   // show particles
