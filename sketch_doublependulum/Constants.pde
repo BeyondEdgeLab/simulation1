@@ -33,7 +33,7 @@ final float TRAIL_WEIGHT     = 1.5;    // trail stroke weight
 
 // --- Physics Integration ---
 final float TIME_STEP        = 0.01;   // RK4 time step in seconds (smaller = more accurate)
-final int   STEPS_PER_FRAME  = 10;     // physics steps computed per drawn frame (controls speed)
+final int   STEPS_PER_FRAME  = 2;     // physics steps computed per drawn frame (controls speed)
 
 // --- Visual ---
 final int   BACKGROUND_COLOR = 15;     // background darkness (0=black, 255=white)
@@ -47,6 +47,9 @@ final float Z_SPREAD             = 80.0;   // pixel gap between pendulums along 
 final float CAM_INIT_ANGLE_X     = -0.25;  // initial vertical tilt (radians; negative = tilt down to look from above)
 final float CAM_INIT_ANGLE_Y     = 0.4;    // initial horizontal rotation (radians)
 final float CAM_DRAG_SENSITIVITY = 0.005;  // how fast a mouse drag rotates the camera
+final float CAM_ZOOM_STEP        = 0.05;   // zoom change per scroll notch
+final float CAM_ZOOM_MIN         = 0.05;   // maximum zoom out (lower = further away)
+final float CAM_ZOOM_MAX         = 10.0;   // maximum zoom in
 
 // --- Color Palette ---
 // First and last pendulum colors; intermediate ones interpolate between them.

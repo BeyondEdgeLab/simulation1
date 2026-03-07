@@ -128,8 +128,8 @@ void mousePressed() {
 }
 
 void mouseWheel(MouseEvent e) {
-  camZoom -= e.getCount() * 0.05;
-  camZoom  = constrain(camZoom, 0.2, 5.0);
+  camZoom -= e.getCount() * CAM_ZOOM_STEP;
+  camZoom  = constrain(camZoom, CAM_ZOOM_MIN, CAM_ZOOM_MAX);
 }
 
 void keyPressed() {
