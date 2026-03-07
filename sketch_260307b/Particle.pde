@@ -5,9 +5,9 @@ class Particle {
   Particle(float x_, float y_){
     x = x_;
     y = y_;
-    r = 8;
-    vx = random(-2,2);
-    vy = random(-2,2);
+    r = PARTICLE_RADIUS;
+    vx = random(-MAX_SPEED, MAX_SPEED);
+    vy = random(-MAX_SPEED, MAX_SPEED);
   }
   
   void move(){
