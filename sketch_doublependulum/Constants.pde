@@ -33,7 +33,7 @@ final float TRAIL_WEIGHT     = 1.5;    // trail stroke weight
 
 // --- Physics Integration ---
 final float TIME_STEP        = 0.01;   // RK4 time step in seconds (smaller = more accurate)
-final int   STEPS_PER_FRAME  = 10;     // physics steps computed per drawn frame (controls speed)
+final int   STEPS_PER_FRAME  = 1;     // physics steps computed per drawn frame (controls speed)
 
 // --- Visual ---
 final int   BACKGROUND_COLOR = 15;     // background darkness (0=black, 255=white)
