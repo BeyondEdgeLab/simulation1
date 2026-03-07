@@ -1,12 +1,16 @@
 class Particle {
   float x, y, r;
   float vx, vy;
-  color col;  // particle color, set at construction
+  color col;       // particle color, set at construction
+  int groupId;     // 0 = Group A (red), 1 = Group B (blue)
+  int offsprings;  // number of collisions this particle has been involved in
   
-  Particle(float x_, float y_, color col_){
+  Particle(float x_, float y_, color col_, int groupId_){
     x = x_;
     y = y_;
     col = col_;
+    groupId = groupId_;
+    offsprings = 0;
     r = PARTICLE_RADIUS;
     vx = random(-MAX_SPEED, MAX_SPEED);
     vy = random(-MAX_SPEED, MAX_SPEED);
@@ -29,7 +33,14 @@ class Particle {
     float minDist = r + other.r;
     
     if(dist < minDist){
+      // global total
       collisionCount++;
+      // per-group counters (a red-blue collision increments both)
+      if(groupId == 0 || other.groupId == 0) collisionCountRed++;
+      if(groupId == 1 || other.groupId == 1) collisionCountBlue++;
+      // per-particle offspring count
+      offsprings++;
+      other.offsprings++;
       
       float angle = atan2(dy,dx);
       float overlap = minDist - dist;

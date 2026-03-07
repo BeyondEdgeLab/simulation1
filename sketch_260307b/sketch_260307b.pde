@@ -3,8 +3,12 @@
 // Constants    -> Constants.pde
 
 ArrayList<Particle> particles;
-int collisionCount = 0;
-ArrayList<Integer> history;
+int collisionCount    = 0;  // total collisions
+int collisionCountRed  = 0;  // collisions involving red particles
+int collisionCountBlue = 0;  // collisions involving blue particles
+ArrayList<Integer> history;      // total
+ArrayList<Integer> historyRed;   // red group
+ArrayList<Integer> historyBlue;  // blue group
 int simX;
 int startTime;
 int yMax;  // current y-axis ceiling, grows automatically
@@ -18,14 +22,17 @@ void setup() {
   startTime = millis();
   yMax = GRAPH_Y_MAX_INITIAL;
   particles = new ArrayList<Particle>();
-  history = new ArrayList<Integer>();
+  history     = new ArrayList<Integer>();
+  historyRed  = new ArrayList<Integer>();
+  historyBlue = new ArrayList<Integer>();
   
   // spawn Group A (red)
   for(int i = 0; i < GROUP_A_COUNT; i++){
     particles.add(new Particle(
       random(simX+20, width-20),
       random(20, height-20),
-      color(GROUP_A_R, GROUP_A_G, GROUP_A_B)
+      color(GROUP_A_R, GROUP_A_G, GROUP_A_B),
+      0
     ));
   }
   // spawn Group B (blue)
@@ -33,7 +40,8 @@ void setup() {
     particles.add(new Particle(
       random(simX+20, width-20),
       random(20, height-20),
-      color(GROUP_B_R, GROUP_B_G, GROUP_B_B)
+      color(GROUP_B_R, GROUP_B_G, GROUP_B_B),
+      1
     ));
   }
 }
@@ -61,9 +69,15 @@ void draw() {
   }
   
   history.add(collisionCount);
+  historyRed.add(collisionCountRed);
+  historyBlue.add(collisionCountBlue);
 
-  // auto-scale y-axis when count approaches the top
-  if(collisionCount >= yMax * GRAPH_Y_SCALE_AT){
+  // auto-scale y-axis: use the max of whichever series are enabled
+  int activeMax = 0;
+  if(SHOW_TOTAL_COLLISIONS) activeMax = max(activeMax, collisionCount);
+  if(SHOW_RED_COLLISIONS)   activeMax = max(activeMax, collisionCountRed);
+  if(SHOW_BLUE_COLLISIONS)  activeMax = max(activeMax, collisionCountBlue);
+  if(activeMax >= yMax * GRAPH_Y_SCALE_AT){
     yMax = (int)(yMax * GRAPH_Y_SCALE_FACTOR);
   }
 }
@@ -89,8 +103,14 @@ void drawGraph(){
   fill(200);
   textSize(GRAPH_TICK_SIZE);
   
+  // y-axis ticks: base on the largest active series
+  int refCount = 0;
+  if(SHOW_TOTAL_COLLISIONS) refCount = max(refCount, collisionCount);
+  if(SHOW_RED_COLLISIONS)   refCount = max(refCount, collisionCountRed);
+  if(SHOW_BLUE_COLLISIONS)  refCount = max(refCount, collisionCountBlue);
+
   // y-axis: ticks appear at fixed absolute count values (GRAPH_Y_TICK_BASE, 2x, 3x...)
-  // each frame: loop all possible tick positions up to current collisionCount,
+  // each frame: loop all possible tick positions up to current refCount,
   // draw only those at least GRAPH_MIN_Y_TICK_PX from the last drawn one — no sudden jumps
   {
     // find a coarse start interval so we don't iterate millions of times
@@ -101,7 +121,7 @@ void drawGraph(){
     }
     textSize(GRAPH_TICK_SIZE);
     float lastDrawnTy = height - m; // track pixel y of last drawn tick (starts at 0-line)
-    for(int v = yStep; v <= collisionCount; v += yStep){
+    for(int v = yStep; v <= refCount; v += yStep){
       float ty = map(v, 0, yMax, height - m, m / 2.0);
       // only draw if far enough from the previous drawn tick
       if(lastDrawnTy - ty >= GRAPH_MIN_Y_TICK_PX){
@@ -191,15 +211,39 @@ void drawGraph(){
     text("Collision Count", 0, 0);
   popMatrix();
   
-  // --- Data line ---
-  noFill();
-  stroke(100, 200, 255);
-  beginShape();
-  for(int i = 0; i < history.size(); i++){
-    float x = map(i, 0, max(history.size(), 1), m, simX - m/2);
-    float y = map(history.get(i), 0, yMax, height - m, m/2);
-    vertex(x, y);
+  // --- Data lines (color-coded, enabled by constants) ---
+  int n = history.size();
+  if(n > 1){
+    if(SHOW_TOTAL_COLLISIONS){
+      noFill(); stroke(255, 255, 255); // white
+      beginShape();
+      for(int i = 0; i < n; i++){
+        float x = map(i, 0, n, m, simX - m/2);
+        float y = map(history.get(i), 0, yMax, height - m, m/2);
+        vertex(x, y);
+      }
+      endShape();
+    }
+    if(SHOW_RED_COLLISIONS){
+      noFill(); stroke(GROUP_A_R, GROUP_A_G, GROUP_A_B); // red
+      beginShape();
+      for(int i = 0; i < historyRed.size(); i++){
+        float x = map(i, 0, n, m, simX - m/2);
+        float y = map(historyRed.get(i), 0, yMax, height - m, m/2);
+        vertex(x, y);
+      }
+      endShape();
+    }
+    if(SHOW_BLUE_COLLISIONS){
+      noFill(); stroke(GROUP_B_R, GROUP_B_G, GROUP_B_B); // blue
+      beginShape();
+      for(int i = 0; i < historyBlue.size(); i++){
+        float x = map(i, 0, n, m, simX - m/2);
+        float y = map(historyBlue.get(i), 0, yMax, height - m, m/2);
+        vertex(x, y);
+      }
+      endShape();
+    }
   }
-  endShape();
 }
 

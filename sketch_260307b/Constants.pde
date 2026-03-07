@@ -55,3 +55,9 @@ final int[] TICK_INTERVALS  = {   1,    2,   300,   1800,   3600, 21600 }; // se
 
 // --- Visual ---
 final int BACKGROUND_COLOR = 30;  // background darkness (0 = black, 255 = white)
+
+// --- Graph Lines ---
+// Set to true/false to show or hide each collision series on the plot
+final boolean SHOW_TOTAL_COLLISIONS = true;   // white line  — all collisions combined
+final boolean SHOW_RED_COLLISIONS   = true;   // red line    — collisions involving red particles
+final boolean SHOW_BLUE_COLLISIONS  = true;   // blue line   — collisions involving blue particles
