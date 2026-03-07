@@ -1,0 +1,11 @@
+{
+  "name": "double-pendulum",
+  "version": "1.0.0",
+  "description": "3D double pendulum simulation — p5.js web port",
+  "scripts": {
+    "start": "npx serve . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  }
+}
