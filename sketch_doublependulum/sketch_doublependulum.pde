@@ -20,6 +20,9 @@ float camOffsetX, camOffsetY; // pan offset in screen pixels
 float camZoom;                // zoom multiplier
 float prevMouseX, prevMouseY; // last drag position
 
+// Reset button bounds (set in draw so they scale with window)
+float btnX, btnY, btnW, btnH;
+
 void settings() {
   fullScreen(P3D);
 }
@@ -109,7 +112,24 @@ void draw() {
   textSize(13);
   textAlign(LEFT, TOP);
   text("Double Pendulum  |  " + NUM_PENDULUMS + " pendulums  |  chaos offset: " + CHAOS_OFFSET, 14, 14);
-  text("Left-drag: orbit  |  Right-drag: pan  |  Scroll: zoom  |  R: reset sim  |  Space: reset camera", 14, 32);
+  text("Left-drag: orbit  |  Right-drag: pan  |  Scroll: zoom  |  Space: reset camera", 14, 32);
+
+  // Reset button
+  btnW = 140;  btnH = 30;
+  btnX = width - btnW - 16;
+  btnY = 16;
+  boolean hover = mouseX >= btnX && mouseX <= btnX + btnW &&
+                  mouseY >= btnY && mouseY <= btnY + btnH;
+  fill(hover ? color(220, 80, 80) : color(160, 50, 50));
+  stroke(220, 100, 100);
+  strokeWeight(1);
+  rect(btnX, btnY, btnW, btnH, 5);
+  fill(255);
+  noStroke();
+  textSize(13);
+  textAlign(CENTER, CENTER);
+  text("Reset Simulation", btnX + btnW/2, btnY + btnH/2);
+
   hint(ENABLE_DEPTH_TEST);
 }
 
@@ -132,6 +152,18 @@ void mouseDragged() {
 void mousePressed() {
   prevMouseX = mouseX;
   prevMouseY = mouseY;
+}
+
+void mouseReleased() {
+  // Only trigger button if mouse barely moved (i.e. a click, not a drag)
+  float dx = abs(mouseX - prevMouseX);
+  float dy = abs(mouseY - prevMouseY);
+  if(dx < 5 && dy < 5) {
+    if(mouseX >= btnX && mouseX <= btnX + btnW &&
+       mouseY >= btnY && mouseY <= btnY + btnH) {
+      buildPendulums();  // reset physics only — camera unchanged
+    }
+  }
 }
 
 void mouseWheel(MouseEvent e) {
