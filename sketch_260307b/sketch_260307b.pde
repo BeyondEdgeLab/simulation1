@@ -100,7 +100,7 @@ void syncInputFieldsWithSettings(){
 
 void layoutControls(){
   float left = CONTROL_PANEL_PADDING;
-  float top = 66;
+  float top = 84;
   float columnWidth = (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_COLUMN_GAP) / 2.0;
   float rowStep = CONTROL_FIELD_HEIGHT + 18;
   float groupBLeft = left + columnWidth + CONTROL_COLUMN_GAP;
@@ -385,6 +385,7 @@ void drawSimulationArea(){
 
 void drawControlPanel(){
   layoutControls();
+  float statusY = groupAOffspringField.y + CONTROL_FIELD_HEIGHT + 10;
 
   noStroke();
   fill(24, 28, 36);
@@ -412,7 +413,7 @@ void drawControlPanel(){
   fill(205);
   textAlign(LEFT, TOP);
   textSize(CONTROL_STATUS_SIZE);
-  text(statusMessage, CONTROL_PANEL_PADDING, CONTROL_PANEL_HEIGHT - CONTROL_PANEL_PADDING - 14);
+  text(statusMessage, CONTROL_PANEL_PADDING, statusY, simX - CONTROL_PANEL_PADDING * 2.0, 40);
 }
 
 void mousePressed(){
@@ -560,8 +561,10 @@ void drawGraph(){
   textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
   textAlign(CENTER, BOTTOM);
   text("Time", simX/2, midY - 2);
+  float yAxisLabelX = 20;
+  float topLabelY = (topPxTop + topPxBottom) / 2.0;
   pushMatrix();
-    translate(12, midY/2); rotate(-HALF_PI);
+    translate(yAxisLabelX, topLabelY); rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
     text("Collisions", 0, 0);
   popMatrix();
@@ -585,8 +588,9 @@ void drawGraph(){
   textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
   textAlign(CENTER, BOTTOM);
   text("Time", simX/2, height - 2);
+  float bottomLabelY = (botPxTop + botPxBottom) / 2.0;
   pushMatrix();
-    translate(12, midY + (height - midY)/2); rotate(-HALF_PI);
+    translate(yAxisLabelX, bottomLabelY); rotate(-HALF_PI);
     textAlign(CENTER, CENTER);
     text("Population", 0, 0);
   popMatrix();
