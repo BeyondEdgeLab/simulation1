@@ -36,10 +36,32 @@ class Particle {
     x += vx * TIME_SCALE;
     y += vy * TIME_SCALE;
   }
+
+  void keepInBounds(){
+    float leftBound = simX + r;
+    float rightBound = width - r;
+    float topBound = r;
+    float bottomBound = height - r;
+
+    if(x < leftBound){
+      x = leftBound;
+      vx = abs(vx);
+    } else if(x > rightBound){
+      x = rightBound;
+      vx = -abs(vx);
+    }
+
+    if(y < topBound){
+      y = topBound;
+      vy = abs(vy);
+    } else if(y > bottomBound){
+      y = bottomBound;
+      vy = -abs(vy);
+    }
+  }
   
   void wallBounce(){
-    if(x < simX + r || x > width - r) vx *= -1;
-    if(y < r || y > height - r) vy *= -1;
+    keepInBounds();
   }
   
   void collide(Particle other){
@@ -105,6 +127,9 @@ class Particle {
       
       other.vx = tempX;
       other.vy = tempY;
+
+      keepInBounds();
+      other.keepInBounds();
     }
   }
   

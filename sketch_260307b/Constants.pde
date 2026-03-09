@@ -14,7 +14,7 @@ final float TIME_SCALE = 1.0;  // multiplier for simulation speed:
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
 // --- Particles ---
-final float PARTICLE_RADIUS = 3;    // radius of each particle in pixels
+final float PARTICLE_RADIUS = 7;    // radius of each particle in pixels
 final float MAX_SPEED       = 5.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
 final int   MAX_POPULATION  = 1000;  // simulation stops when total particle count reaches this number
 final boolean STOP_ON_EXTINCTION = true;  // if true, simulation stops when all particles have died (population = 0)
