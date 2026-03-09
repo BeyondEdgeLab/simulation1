@@ -104,6 +104,7 @@ void layoutControls(){
   float columnWidth = (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_COLUMN_GAP) / 2.0;
   float rowStep = CONTROL_FIELD_HEIGHT + 18;
   float groupBLeft = left + columnWidth + CONTROL_COLUMN_GAP;
+  float fieldsBottom = top + rowStep * 3 + CONTROL_FIELD_HEIGHT;
 
   groupACountField.setBounds(left, top, columnWidth, CONTROL_FIELD_HEIGHT);
   groupAMinAgeField.setBounds(left, top + rowStep, columnWidth, CONTROL_FIELD_HEIGHT);
@@ -115,7 +116,7 @@ void layoutControls(){
   groupBMaxAgeField.setBounds(groupBLeft, top + rowStep * 2, columnWidth, CONTROL_FIELD_HEIGHT);
   groupBOffspringField.setBounds(groupBLeft, top + rowStep * 3, columnWidth, CONTROL_FIELD_HEIGHT);
 
-  float buttonY = CONTROL_PANEL_HEIGHT - CONTROL_PANEL_PADDING - CONTROL_BUTTON_HEIGHT - 18;
+  float buttonY = fieldsBottom + 28;
   float buttonWidth = (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_FIELD_GAP * 2.0) / 3.0;
   runButton.setBounds(CONTROL_PANEL_PADDING, buttonY, buttonWidth, CONTROL_BUTTON_HEIGHT);
   pauseButton.setBounds(CONTROL_PANEL_PADDING + buttonWidth + CONTROL_FIELD_GAP, buttonY, buttonWidth, CONTROL_BUTTON_HEIGHT);

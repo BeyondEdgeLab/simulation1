@@ -20,7 +20,7 @@ final int   MAX_POPULATION  = 1000;  // simulation stops when total particle cou
 final boolean STOP_ON_EXTINCTION = true;  // if true, simulation stops when all particles have died (population = 0)
 
 // --- Control Panel ---
-final int CONTROL_PANEL_HEIGHT     = 300;
+final int CONTROL_PANEL_HEIGHT     = 360;
 final int CONTROL_PANEL_PADDING    = 18;
 final int CONTROL_FIELD_HEIGHT     = 32;
 final int CONTROL_BUTTON_HEIGHT    = 40;
