@@ -4,22 +4,19 @@ class Particle {
   color col;        // particle color
   int   groupId;    // 0 = Group A (red), 1 = Group B (blue)
   int   offsprings; // total offspring this particle has produced
-  int   birthTime;  // millis() at creation, used to compute simulated age
+  float birthSimTime;
 
-  // returns simulated age in seconds (respects TIME_SCALE)
   float age(){
-    return ((millis() - birthTime) / 1000.0) * TIME_SCALE;
+    return simElapsedSec - birthSimTime;
   }
 
-  // returns true once particle has lived long enough to produce offspring
   boolean isMature(){
-    float minAge = (groupId == 0) ? GROUP_A_MIN_AGE : GROUP_B_MIN_AGE;
+    float minAge = (groupId == 0) ? groupAMinAge : groupBMinAge;
     return age() >= minAge;
   }
 
-  // returns true when particle has exceeded its lifespan
   boolean isDead(){
-    float maxAge = (groupId == 0) ? GROUP_A_MAX_AGE : GROUP_B_MAX_AGE;
+    float maxAge = (groupId == 0) ? groupAMaxAge : groupBMaxAge;
     return age() >= maxAge;
   }
   
@@ -29,7 +26,7 @@ class Particle {
     col = col_;
     groupId = groupId_;
     offsprings = 0;
-    birthTime = millis();
+    birthSimTime = simElapsedSec;
     r = PARTICLE_RADIUS;
     vx = random(-MAX_SPEED, MAX_SPEED);
     vy = random(-MAX_SPEED, MAX_SPEED);
@@ -58,9 +55,8 @@ class Particle {
       // red vs blue collisions count in total only
       if(groupId == 0 && other.groupId == 0){
         collisionCountRed++;
-        // spawn red offspring only if both parents are mature
         if(isMature() && other.isMature()){
-          int count = GROUP_A_OFFSPRING;
+          int count = groupAOffspring;
           for(int k = 0; k < count; k++){
             float mx = (x + other.x) / 2;
             float my = (y + other.y) / 2;
@@ -75,9 +71,8 @@ class Particle {
       }
       if(groupId == 1 && other.groupId == 1){
         collisionCountBlue++;
-        // spawn blue offspring only if both parents are mature
         if(isMature() && other.isMature()){
-          int count = GROUP_B_OFFSPRING;
+          int count = groupBOffspring;
           for(int k = 0; k < count; k++){
             float mx = (x + other.x) / 2;
             float my = (y + other.y) / 2;
@@ -90,9 +85,8 @@ class Particle {
           }
         }
       }
-      // per-particle offspring tracking
-      offsprings       += (groupId == 0) ? GROUP_A_OFFSPRING : GROUP_B_OFFSPRING;
-      other.offsprings += (other.groupId == 0) ? GROUP_A_OFFSPRING : GROUP_B_OFFSPRING;
+      offsprings       += (groupId == 0) ? groupAOffspring : groupBOffspring;
+      other.offsprings += (other.groupId == 0) ? groupAOffspring : groupBOffspring;
       
       float angle = atan2(dy,dx);
       float overlap = minDist - dist;
@@ -115,13 +109,10 @@ class Particle {
   }
   
   void show(){
-    // fade out as particle approaches end of life
-    float maxAge = (groupId == 0) ? GROUP_A_MAX_AGE : GROUP_B_MAX_AGE;
-    float minAge = (groupId == 0) ? GROUP_A_MIN_AGE : GROUP_B_MIN_AGE;
+    float maxAge = (groupId == 0) ? groupAMaxAge : groupBMaxAge;
+    float minAge = (groupId == 0) ? groupAMinAge : groupBMinAge;
     float a = age();
-    // dim while immature (not yet able to reproduce)
     float alpha = a < minAge ? map(a, 0, minAge, 80, 255) : 255;
-    // fade near death
     alpha = a > maxAge * 0.8 ? map(a, maxAge * 0.8, maxAge, 255, 0) : alpha;
     fill(red(col), green(col), blue(col), alpha);
     noStroke();

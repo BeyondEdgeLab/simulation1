@@ -4,7 +4,7 @@
 
 ArrayList<Particle> particles;
 ArrayList<Particle> pendingParticles;
-int collisionCount    = 0;
+int collisionCount     = 0;
 int collisionCountRed  = 0;
 int collisionCountBlue = 0;
 ArrayList<Integer> history;         // total collisions
@@ -14,9 +14,28 @@ ArrayList<Integer> historyPopTotal; // total population
 ArrayList<Integer> historyPopRed;   // red population
 ArrayList<Integer> historyPopBlue;  // blue population
 int simX;
-int startTime;
 int yMax;     // collision plot y-ceiling
 int yMaxPop;  // population plot y-ceiling
+float simElapsedSec = 0;
+int lastFrameMillis = 0;
+boolean simulationRunning = false;
+boolean simulationPaused = false;
+String statusMessage = "Edit the fields and press Run to start.";
+
+UiNumberField groupACountField;
+UiNumberField groupAMinAgeField;
+UiNumberField groupAMaxAgeField;
+UiNumberField groupAOffspringField;
+UiNumberField groupBCountField;
+UiNumberField groupBMinAgeField;
+UiNumberField groupBMaxAgeField;
+UiNumberField groupBOffspringField;
+UiNumberField[] inputFields;
+UiNumberField activeField;
+
+UiButton runButton;
+UiButton pauseButton;
+UiButton stopButton;
 
 void settings() {
   fullScreen();
@@ -24,119 +43,408 @@ void settings() {
 
 void setup() {
   simX = (int)(width * GRAPH_RATIO);
-  startTime = millis();
-  yMax    = GRAPH_Y_MAX_INITIAL;
-  yMaxPop = GRAPH_POP_Y_MAX_INITIAL;
-  particles        = new ArrayList<Particle>();
+  initializeUi();
+  resetSimulation();
+  syncInputFieldsWithSettings();
+  lastFrameMillis = millis();
+}
+
+void draw() {
+  int now = millis();
+  int frameMillis = max(0, now - lastFrameMillis);
+  lastFrameMillis = now;
+
+  if(simulationRunning && !simulationPaused){
+    simElapsedSec += (frameMillis / 1000.0) * TIME_SCALE;
+    updateSimulation();
+  }
+
+  background(BACKGROUND_COLOR);
+  drawGraph();
+  drawSimulationArea();
+  drawControlPanel();
+}
+
+void initializeUi(){
+  groupACountField = new UiNumberField("Population", str(groupACount), false);
+  groupAMinAgeField = new UiNumberField("Min age", str(groupAMinAge), true);
+  groupAMaxAgeField = new UiNumberField("Max age", str(groupAMaxAge), true);
+  groupAOffspringField = new UiNumberField("Offspring", str(groupAOffspring), false);
+
+  groupBCountField = new UiNumberField("Population", str(groupBCount), false);
+  groupBMinAgeField = new UiNumberField("Min age", str(groupBMinAge), true);
+  groupBMaxAgeField = new UiNumberField("Max age", str(groupBMaxAge), true);
+  groupBOffspringField = new UiNumberField("Offspring", str(groupBOffspring), false);
+
+  inputFields = new UiNumberField[]{
+    groupACountField, groupAMinAgeField, groupAMaxAgeField, groupAOffspringField,
+    groupBCountField, groupBMinAgeField, groupBMaxAgeField, groupBOffspringField
+  };
+
+  runButton = new UiButton("Run", color(52, 145, 88), color(68, 176, 105));
+  pauseButton = new UiButton("Pause", color(172, 126, 34), color(207, 154, 45));
+  stopButton = new UiButton("Stop", color(160, 64, 64), color(194, 78, 78));
+}
+
+void syncInputFieldsWithSettings(){
+  groupACountField.text = str(groupACount);
+  groupAMinAgeField.text = str(groupAMinAge);
+  groupAMaxAgeField.text = str(groupAMaxAge);
+  groupAOffspringField.text = str(groupAOffspring);
+
+  groupBCountField.text = str(groupBCount);
+  groupBMinAgeField.text = str(groupBMinAge);
+  groupBMaxAgeField.text = str(groupBMaxAge);
+  groupBOffspringField.text = str(groupBOffspring);
+}
+
+void layoutControls(){
+  float left = CONTROL_PANEL_PADDING;
+  float top = 66;
+  float columnWidth = (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_COLUMN_GAP) / 2.0;
+  float rowStep = CONTROL_FIELD_HEIGHT + 18;
+  float groupBLeft = left + columnWidth + CONTROL_COLUMN_GAP;
+
+  groupACountField.setBounds(left, top, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupAMinAgeField.setBounds(left, top + rowStep, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupAMaxAgeField.setBounds(left, top + rowStep * 2, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupAOffspringField.setBounds(left, top + rowStep * 3, columnWidth, CONTROL_FIELD_HEIGHT);
+
+  groupBCountField.setBounds(groupBLeft, top, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupBMinAgeField.setBounds(groupBLeft, top + rowStep, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupBMaxAgeField.setBounds(groupBLeft, top + rowStep * 2, columnWidth, CONTROL_FIELD_HEIGHT);
+  groupBOffspringField.setBounds(groupBLeft, top + rowStep * 3, columnWidth, CONTROL_FIELD_HEIGHT);
+
+  float buttonY = CONTROL_PANEL_HEIGHT - CONTROL_PANEL_PADDING - CONTROL_BUTTON_HEIGHT - 18;
+  float buttonWidth = (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_FIELD_GAP * 2.0) / 3.0;
+  runButton.setBounds(CONTROL_PANEL_PADDING, buttonY, buttonWidth, CONTROL_BUTTON_HEIGHT);
+  pauseButton.setBounds(CONTROL_PANEL_PADDING + buttonWidth + CONTROL_FIELD_GAP, buttonY, buttonWidth, CONTROL_BUTTON_HEIGHT);
+  stopButton.setBounds(CONTROL_PANEL_PADDING + (buttonWidth + CONTROL_FIELD_GAP) * 2, buttonY, buttonWidth, CONTROL_BUTTON_HEIGHT);
+}
+
+void resetSimulation(){
+  particles = new ArrayList<Particle>();
   pendingParticles = new ArrayList<Particle>();
-  history         = new ArrayList<Integer>();
-  historyRed      = new ArrayList<Integer>();
-  historyBlue     = new ArrayList<Integer>();
+  history = new ArrayList<Integer>();
+  historyRed = new ArrayList<Integer>();
+  historyBlue = new ArrayList<Integer>();
   historyPopTotal = new ArrayList<Integer>();
-  historyPopRed   = new ArrayList<Integer>();
-  historyPopBlue  = new ArrayList<Integer>();
-  
-  // spawn Group A (red)
-  for(int i = 0; i < GROUP_A_COUNT; i++){
+  historyPopRed = new ArrayList<Integer>();
+  historyPopBlue = new ArrayList<Integer>();
+  collisionCount = 0;
+  collisionCountRed = 0;
+  collisionCountBlue = 0;
+  yMax = GRAPH_Y_MAX_INITIAL;
+  yMaxPop = GRAPH_POP_Y_MAX_INITIAL;
+  simElapsedSec = 0;
+  lastFrameMillis = millis();
+}
+
+void spawnParticles(){
+  for(int i = 0; i < groupACount; i++){
     particles.add(new Particle(
-      random(simX+20, width-20),
-      random(20, height-20),
+      random(simX + 20, width - 20),
+      random(20, height - 20),
       color(GROUP_A_R, GROUP_A_G, GROUP_A_B),
       0
     ));
   }
-  // spawn Group B (blue)
-  for(int i = 0; i < GROUP_B_COUNT; i++){
+
+  for(int i = 0; i < groupBCount; i++){
     particles.add(new Particle(
-      random(simX+20, width-20),
-      random(20, height-20),
+      random(simX + 20, width - 20),
+      random(20, height - 20),
       color(GROUP_B_R, GROUP_B_G, GROUP_B_B),
       1
     ));
   }
 }
 
-void draw() {
-  // stop simulation when population cap is reached
+void updateSimulation(){
   if(particles.size() >= MAX_POPULATION){
-    noLoop();
-    // draw a message over the simulation area
-    fill(255);
-    textSize(24);
-    textAlign(CENTER, CENTER);
-    text("Population cap reached: " + particles.size() + " particles",
-         simX + (width - simX) / 2, height / 2);
+    haltSimulation("Population cap reached: " + particles.size() + " particles.");
     return;
   }
-  background(BACKGROUND_COLOR);
-  drawGraph();
-  
-  // move and wall bounce
+
   for(Particle p : particles){
     p.move();
     p.wallBounce();
   }
-  
-  // collisions
-  for(int i=0;i<particles.size();i++){
-    for(int j=i+1;j<particles.size();j++){
+
+  for(int i = 0; i < particles.size(); i++){
+    for(int j = i + 1; j < particles.size(); j++){
       particles.get(i).collide(particles.get(j));
     }
   }
-  // add offspring spawned during collision loop
+
   particles.addAll(pendingParticles);
   pendingParticles.clear();
 
-  // remove particles that have exceeded their max age
   for(int i = particles.size() - 1; i >= 0; i--){
-    if(particles.get(i).isDead()) particles.remove(i);
+    if(particles.get(i).isDead()){
+      particles.remove(i);
+    }
   }
 
-  // stop simulation if all particles have died
   if(STOP_ON_EXTINCTION && particles.size() == 0){
-    noLoop();
-    fill(255);
-    textSize(24);
-    textAlign(CENTER, CENTER);
-    text("Extinction: all particles have died", simX + (width - simX) / 2, height / 2);
-    return;
+    haltSimulation("Extinction: all particles have died.");
   }
 
-  // show particles
-  for(Particle p : particles){
-    p.show();
+  recordHistory();
+
+  if(particles.size() >= MAX_POPULATION){
+    haltSimulation("Population cap reached: " + particles.size() + " particles.");
   }
-  
+}
+
+void recordHistory(){
   history.add(collisionCount);
   historyRed.add(collisionCountRed);
   historyBlue.add(collisionCountBlue);
 
-  // count current population by group
-  int popRed = 0, popBlue = 0;
+  int popRed = 0;
+  int popBlue = 0;
   for(Particle p : particles){
     if(p.groupId == 0) popRed++;
     else               popBlue++;
   }
+
   historyPopTotal.add(particles.size());
   historyPopRed.add(popRed);
   historyPopBlue.add(popBlue);
 
-  // auto-scale collision y-axis
   int activeMax = 0;
   if(SHOW_TOTAL_COLLISIONS) activeMax = max(activeMax, collisionCount);
   if(SHOW_RED_COLLISIONS)   activeMax = max(activeMax, collisionCountRed);
   if(SHOW_BLUE_COLLISIONS)  activeMax = max(activeMax, collisionCountBlue);
   if(activeMax >= yMax * GRAPH_Y_SCALE_AT){
-    yMax = (int)(yMax * GRAPH_Y_SCALE_FACTOR);
+    yMax = max(yMax + 1, (int)(yMax * GRAPH_Y_SCALE_FACTOR));
   }
 
-  // auto-scale population y-axis
   int popMax = 0;
   if(SHOW_TOTAL_POPULATION) popMax = max(popMax, particles.size());
   if(SHOW_RED_POPULATION)   popMax = max(popMax, popRed);
   if(SHOW_BLUE_POPULATION)  popMax = max(popMax, popBlue);
   if(popMax >= yMaxPop * GRAPH_Y_SCALE_AT){
-    yMaxPop = (int)(yMaxPop * GRAPH_Y_SCALE_FACTOR);
+    yMaxPop = max(yMaxPop + 1, (int)(yMaxPop * GRAPH_Y_SCALE_FACTOR));
+  }
+}
+
+void haltSimulation(String message){
+  simulationRunning = false;
+  simulationPaused = false;
+  statusMessage = message;
+}
+
+void handleRunButton(){
+  if(simulationRunning){
+    if(simulationPaused){
+      simulationPaused = false;
+      lastFrameMillis = millis();
+      statusMessage = "Simulation resumed.";
+    } else {
+      statusMessage = "Simulation is already running. Press Stop to restart with new values.";
+    }
+    return;
+  }
+
+  if(!applyInputsToSettings()){
+    return;
+  }
+
+  resetSimulation();
+  spawnParticles();
+  simulationRunning = true;
+  simulationPaused = false;
+  activeField = null;
+  lastFrameMillis = millis();
+  statusMessage = "Simulation running.";
+}
+
+void handlePauseButton(){
+  if(!simulationRunning){
+    statusMessage = "Simulation is not running.";
+    return;
+  }
+
+  if(simulationPaused){
+    statusMessage = "Simulation is already paused.";
+    return;
+  }
+
+  simulationPaused = true;
+  statusMessage = "Simulation paused.";
+}
+
+void handleStopButton(){
+  simulationRunning = false;
+  simulationPaused = false;
+  resetSimulation();
+  statusMessage = "Simulation stopped.";
+}
+
+boolean applyInputsToSettings(){
+  try {
+    int nextGroupACount = parseWholeNumber(groupACountField.text, "Group A population");
+    float nextGroupAMinAge = parseDecimal(groupAMinAgeField.text, "Group A min age", false);
+    float nextGroupAMaxAge = parseDecimal(groupAMaxAgeField.text, "Group A max age", true);
+    int nextGroupAOffspring = parseWholeNumber(groupAOffspringField.text, "Group A offspring");
+
+    int nextGroupBCount = parseWholeNumber(groupBCountField.text, "Group B population");
+    float nextGroupBMinAge = parseDecimal(groupBMinAgeField.text, "Group B min age", false);
+    float nextGroupBMaxAge = parseDecimal(groupBMaxAgeField.text, "Group B max age", true);
+    int nextGroupBOffspring = parseWholeNumber(groupBOffspringField.text, "Group B offspring");
+
+    if(nextGroupAMaxAge < nextGroupAMinAge){
+      statusMessage = "Group A max age must be greater than or equal to min age.";
+      return false;
+    }
+
+    if(nextGroupBMaxAge < nextGroupBMinAge){
+      statusMessage = "Group B max age must be greater than or equal to min age.";
+      return false;
+    }
+
+    groupACount = nextGroupACount;
+    groupAMinAge = nextGroupAMinAge;
+    groupAMaxAge = nextGroupAMaxAge;
+    groupAOffspring = nextGroupAOffspring;
+
+    groupBCount = nextGroupBCount;
+    groupBMinAge = nextGroupBMinAge;
+    groupBMaxAge = nextGroupBMaxAge;
+    groupBOffspring = nextGroupBOffspring;
+    syncInputFieldsWithSettings();
+    return true;
+  }
+  catch(RuntimeException ex){
+    statusMessage = ex.getMessage();
+    return false;
+  }
+}
+
+int parseWholeNumber(String rawValue, String label){
+  String trimmed = rawValue.trim();
+  if(trimmed.length() == 0){
+    throw new RuntimeException(label + " is required.");
+  }
+
+  int parsedValue;
+  try {
+    parsedValue = Integer.parseInt(trimmed);
+  }
+  catch(Exception ex){
+    throw new RuntimeException(label + " must be a whole number.");
+  }
+
+  if(parsedValue < 0){
+    throw new RuntimeException(label + " must be 0 or greater.");
+  }
+
+  return parsedValue;
+}
+
+float parseDecimal(String rawValue, String label, boolean mustBePositive){
+  String trimmed = rawValue.trim();
+  if(trimmed.length() == 0){
+    throw new RuntimeException(label + " is required.");
+  }
+
+  float parsedValue;
+  try {
+    parsedValue = Float.parseFloat(trimmed);
+  }
+  catch(Exception ex){
+    throw new RuntimeException(label + " must be a number.");
+  }
+
+  if(parsedValue < 0 || (mustBePositive && parsedValue == 0)){
+    throw new RuntimeException(label + (mustBePositive ? " must be greater than 0." : " must be 0 or greater."));
+  }
+
+  return parsedValue;
+}
+
+void drawSimulationArea(){
+  stroke(70);
+  noFill();
+  rect(simX, 0, width - simX, height);
+
+  for(Particle p : particles){
+    p.show();
+  }
+
+  if(!simulationRunning || simulationPaused){
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(24);
+    text(statusMessage, simX + (width - simX) / 2.0, height / 2.0);
+  }
+}
+
+void drawControlPanel(){
+  layoutControls();
+
+  noStroke();
+  fill(24, 28, 36);
+  rect(0, 0, simX, CONTROL_PANEL_HEIGHT);
+
+  fill(255);
+  textAlign(LEFT, TOP);
+  textSize(22);
+  text("Simulation Controls", CONTROL_PANEL_PADDING, 16);
+
+  textSize(CONTROL_GROUP_TITLE_SIZE);
+  fill(GROUP_A_R, GROUP_A_G, GROUP_A_B);
+  text("Group A", CONTROL_PANEL_PADDING, 40);
+  fill(GROUP_B_R, GROUP_B_G, GROUP_B_B);
+  text("Group B", CONTROL_PANEL_PADDING + (simX - CONTROL_PANEL_PADDING * 2.0 - CONTROL_COLUMN_GAP) / 2.0 + CONTROL_COLUMN_GAP, 40);
+
+  for(UiNumberField field : inputFields){
+    field.draw(field == activeField);
+  }
+
+  runButton.draw();
+  pauseButton.draw();
+  stopButton.draw();
+
+  fill(205);
+  textAlign(LEFT, TOP);
+  textSize(CONTROL_STATUS_SIZE);
+  text(statusMessage, CONTROL_PANEL_PADDING, CONTROL_PANEL_HEIGHT - CONTROL_PANEL_PADDING - 14);
+}
+
+void mousePressed(){
+  layoutControls();
+
+  if(runButton.contains(mouseX, mouseY)){
+    handleRunButton();
+    return;
+  }
+
+  if(pauseButton.contains(mouseX, mouseY)){
+    handlePauseButton();
+    return;
+  }
+
+  if(stopButton.contains(mouseX, mouseY)){
+    handleStopButton();
+    return;
+  }
+
+  for(UiNumberField field : inputFields){
+    if(field.contains(mouseX, mouseY)){
+      activeField = field;
+      return;
+    }
+  }
+
+  activeField = null;
+}
+
+void keyPressed(){
+  if(activeField != null){
+    activeField.handleKey(key, keyCode);
   }
 }
 
@@ -219,34 +527,35 @@ void drawLines(ArrayList<Integer> hist1, color c1, boolean show1,
 }
 
 void drawGraph(){
-  int m    = GRAPH_MARGIN;
-  int midY = height / 2;
+  int panelTop = CONTROL_PANEL_HEIGHT;
+  int graphHeight = height - panelTop;
+  if(graphHeight <= GRAPH_MARGIN * 2){
+    return;
+  }
 
-  // outer border + divider
+  int m    = GRAPH_MARGIN;
+  int midY = panelTop + graphHeight / 2;
+
   stroke(255); noFill();
   rect(0, 0, simX, height);
   stroke(80);
+  line(0, panelTop, simX, panelTop);
   line(0, midY, simX, midY);
 
-  float elapsedSec = ((millis() - startTime) / 1000.0) * TIME_SCALE;
+  float elapsedSec = simElapsedSec;
 
-  // ---- TOP SUBPLOT: Collision Count ----
   int topPxBottom = midY - m/2;
-  int topPxTop    = m/2;
-  // axes
+  int topPxTop    = panelTop + m/2;
   stroke(180);
-  line(m, topPxBottom, simX - m/2, topPxBottom); // x-axis
-  line(m, topPxTop,    m, topPxBottom);           // y-axis
-  // y ticks
+  line(m, topPxBottom, simX - m/2, topPxBottom);
+  line(m, topPxTop,    m, topPxBottom);
   textSize(GRAPH_TICK_SIZE);
   int refCount = 0;
   if(SHOW_TOTAL_COLLISIONS) refCount = max(refCount, collisionCount);
   if(SHOW_RED_COLLISIONS)   refCount = max(refCount, collisionCountRed);
   if(SHOW_BLUE_COLLISIONS)  refCount = max(refCount, collisionCountBlue);
   drawYAxis(m, topPxBottom, topPxTop, refCount, yMax, GRAPH_Y_TICK_BASE);
-  // x ticks
   drawXAxis(m, topPxBottom, elapsedSec);
-  // axis labels
   textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
   textAlign(CENTER, BOTTOM);
   text("Time", simX/2, midY - 2);
@@ -255,29 +564,23 @@ void drawGraph(){
     textAlign(CENTER, CENTER);
     text("Collisions", 0, 0);
   popMatrix();
-  // data lines
   drawLines(history,      color(255,255,255), SHOW_TOTAL_COLLISIONS,
             historyRed,   color(GROUP_A_R, GROUP_A_G, GROUP_A_B), SHOW_RED_COLLISIONS,
             historyBlue,  color(GROUP_B_R, GROUP_B_G, GROUP_B_B), SHOW_BLUE_COLLISIONS,
             m, topPxBottom, topPxTop, yMax);
 
-  // ---- BOTTOM SUBPLOT: Population ----
   int botPxBottom = height - m/2;
   int botPxTop    = midY + m/2;
-  // axes
   stroke(180);
-  line(m, botPxBottom, simX - m/2, botPxBottom); // x-axis
-  line(m, botPxTop,    m, botPxBottom);           // y-axis
-  // y ticks
+  line(m, botPxBottom, simX - m/2, botPxBottom);
+  line(m, botPxTop,    m, botPxBottom);
   textSize(GRAPH_TICK_SIZE);
   int refPop = 0;
   if(SHOW_TOTAL_POPULATION) refPop = max(refPop, historyPopTotal.size() > 0 ? historyPopTotal.get(historyPopTotal.size()-1) : 0);
   if(SHOW_RED_POPULATION)   refPop = max(refPop, historyPopRed.size()   > 0 ? historyPopRed.get(historyPopRed.size()-1)     : 0);
   if(SHOW_BLUE_POPULATION)  refPop = max(refPop, historyPopBlue.size()  > 0 ? historyPopBlue.get(historyPopBlue.size()-1)   : 0);
   drawYAxis(m, botPxBottom, botPxTop, refPop, yMaxPop, GRAPH_Y_TICK_BASE);
-  // x ticks
   drawXAxis(m, botPxBottom, elapsedSec);
-  // axis labels
   textSize(GRAPH_LABEL_SIZE); fill(255); noStroke();
   textAlign(CENTER, BOTTOM);
   text("Time", simX/2, height - 2);
@@ -286,7 +589,6 @@ void drawGraph(){
     textAlign(CENTER, CENTER);
     text("Population", 0, 0);
   popMatrix();
-  // data lines
   drawLines(historyPopTotal, color(255,255,255), SHOW_TOTAL_POPULATION,
             historyPopRed,   color(GROUP_A_R, GROUP_A_G, GROUP_A_B), SHOW_RED_POPULATION,
             historyPopBlue,  color(GROUP_B_R, GROUP_B_G, GROUP_B_B), SHOW_BLUE_POPULATION,
