@@ -14,9 +14,9 @@ final float TIME_SCALE = 1.0;  // multiplier for simulation speed:
 final float GRAPH_RATIO = 0.44;  // graph panel width as a fraction of the window width (0.0 - 1.0)
 
 // --- Particles ---
-final float PARTICLE_RADIUS = 7;    // radius of each particle in pixels
+final float PARTICLE_RADIUS = 5;    // radius of each particle in pixels
 final float MAX_SPEED       = 5.0;  // max initial speed (particles start with random speed between -MAX_SPEED and +MAX_SPEED)
-final int   MAX_POPULATION  = 1000;  // simulation stops when total particle count reaches this number
+final int   MAX_POPULATION  = 2000;  // simulation stops when total particle count reaches this number
 final boolean STOP_ON_EXTINCTION = true;  // if true, simulation stops when all particles have died (population = 0)
 
 // --- Control Panel ---
@@ -31,7 +31,7 @@ final int CONTROL_LABEL_SIZE       = 12;
 final int CONTROL_STATUS_SIZE      = 14;
 
 // Group A — Red
-final int DEFAULT_GROUP_A_COUNT    = 10;   // number of red particles
+final int DEFAULT_GROUP_A_COUNT    = 35;   // number of red particles
 final int GROUP_A_R                = 220;  // red channel
 final int GROUP_A_G                = 60;   // green channel
 final int GROUP_A_B                = 60;   // blue channel
@@ -40,7 +40,7 @@ final float DEFAULT_GROUP_A_MIN_AGE = 1.0; // sim-seconds a red particle must li
 final float DEFAULT_GROUP_A_MAX_AGE = 10.0; // sim-seconds after which a red particle disappears
 
 // Group B — Blue
-final int DEFAULT_GROUP_B_COUNT    = 10;   // number of blue particles
+final int DEFAULT_GROUP_B_COUNT    = 35;   // number of blue particles
 final int GROUP_B_R                = 60;   // red channel
 final int GROUP_B_G                = 130;  // green channel
 final int GROUP_B_B                = 220;  // blue channel
