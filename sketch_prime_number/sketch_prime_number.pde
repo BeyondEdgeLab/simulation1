@@ -1,80 +1,173 @@
 int maxNumbers = 20000;
 
 boolean[] prime;
-int x, y;
+
+ArrayList<PVector> primes = new ArrayList<PVector>();
+ArrayList<PVector> composites = new ArrayList<PVector>();
+
+float cell = 8;
+
+float angleX = 0;
+float angleY = 0;
+float zoom = -800;
+
+float panX = 0;
+float panY = 0;
+
+boolean drawing = true;
+
+int x = 0;
+int y = 0;
 int dx = 1;
 int dy = 0;
+
 int segmentLength = 1;
 int segmentPassed = 0;
 int segmentCount = 0;
 
-int step = 0;
 int number = 1;
 
-int cell = 6;
+void setup(){
 
-void setup() {
-  size(900, 900);
-  background(10);
-  frameRate(60);
-
+  size(1000,1000,P3D);
   prime = sieve(maxNumbers);
-
-  x = width/2;
-  y = height/2;
+  frameRate(60);
 }
 
-void draw() {
+void draw(){
 
-  for (int i = 0; i < 200; i++) {
+  background(10);
+  lights();
 
-    if (number >= maxNumbers) return;
+  translate(width/2 + panX, height/2 + panY, zoom);
+  rotateX(angleX);
+  rotateY(angleY);
 
-    if (prime[number]) {
-      stroke(255, 220, 80);
-      fill(255, 220, 80);
-      circle(x, y, cell);
-    } else {
-      stroke(80, 120, 180, 90);
-      point(x, y);
-    }
+  if(drawing){
+    for(int i=0;i<300;i++){
 
-    x += dx * cell;
-    y += dy * cell;
+      if(number >= maxNumbers){
+        drawing = false;
+        break;
+      }
 
-    segmentPassed++;
-    number++;
+      float px = x * cell;
+      float py = y * cell;
+      float pz = sin(number*0.05) * 60;
 
-    if (segmentPassed == segmentLength) {
+      if(prime[number]){
+        primes.add(new PVector(px,py,pz));
+      }else{
+        composites.add(new PVector(px,py,pz));
+      }
 
-      segmentPassed = 0;
+      x += dx;
+      y += dy;
 
-      int temp = dx;
-      dx = -dy;
-      dy = temp;
+      segmentPassed++;
+      number++;
 
-      segmentCount++;
+      if(segmentPassed == segmentLength){
 
-      if (segmentCount % 2 == 0) {
-        segmentLength++;
+        segmentPassed = 0;
+
+        int temp = dx;
+        dx = -dy;
+        dy = temp;
+
+        segmentCount++;
+
+        if(segmentCount % 2 == 0){
+          segmentLength++;
+        }
       }
     }
   }
+
+  drawComposites();
+  drawPrimes();
+
+  drawUI();
 }
 
-boolean[] sieve(int n) {
+void drawPrimes(){
+
+  fill(255,220,80);
+  noStroke();
+
+  for(PVector p : primes){
+
+    pushMatrix();
+    translate(p.x,p.y,p.z);
+    sphere(3);
+    popMatrix();
+
+  }
+}
+
+void drawComposites(){
+
+  fill(80,120,200,90);
+  noStroke();
+
+  for(PVector p : composites){
+
+    pushMatrix();
+    translate(p.x,p.y,p.z);
+    box(2);
+    popMatrix();
+
+  }
+}
+
+void drawUI(){
+
+  camera();
+  hint(DISABLE_DEPTH_TEST);
+
+  fill(255);
+  textSize(16);
+  text("Drag mouse: rotate",20,20);
+  text("Right drag: pan",20,40);
+  text("Mouse wheel: zoom",20,60);
+  text("Primes: " + primes.size(),20,80);
+
+  hint(ENABLE_DEPTH_TEST);
+}
+
+void mouseDragged(){
+
+  if(mouseButton == LEFT){
+    angleY += (mouseX - pmouseX) * 0.01;
+    angleX += (mouseY - pmouseY) * 0.01;
+  }
+
+  if(mouseButton == RIGHT){
+    panX += mouseX - pmouseX;
+    panY += mouseY - pmouseY;
+  }
+}
+
+void mouseWheel(processing.event.MouseEvent event){
+  zoom += event.getCount() * 40;
+}
+
+boolean[] sieve(int n){
 
   boolean[] p = new boolean[n+1];
 
-  for (int i = 2; i <= n; i++) {
+  for(int i=2;i<=n;i++){
     p[i] = true;
   }
 
-  for (int i = 2; i*i <= n; i++) {
-    if (p[i]) {
-      for (int j = i*i; j <= n; j += i) {
+  for(int i=2;i*i<=n;i++){
+
+    if(p[i]){
+
+      for(int j=i*i;j<=n;j+=i){
         p[j] = false;
       }
+
     }
   }
 
