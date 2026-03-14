@@ -50,7 +50,7 @@ void buildPendulums() {
   float totalZ = (NUM_PENDULUMS - 1) * Z_SPREAD;
 
   for(int i = 0; i < NUM_PENDULUMS; i++) {
-    float t = (NUM_PENDULUMS == 1) ? 0.5 : (float)i / (NUM_PENDULUMS - 1);
+    float t = (float)i / max(1, (NUM_PENDULUMS - 1));
     color c  = lerpColor(COLOR_START, COLOR_END, t);
 
     float t1  = THETA1_INIT + i * CHAOS_OFFSET;
